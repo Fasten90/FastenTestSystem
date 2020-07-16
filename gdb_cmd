@@ -1,0 +1,8 @@
+file d:/VG/Projects/AtollicWorkspace/FastenNodeF4Discovery/Debug/FastenNodeF4Discovery.elf
+target remote localhost:1234
+#load d:/VG/Projects/AtollicWorkspace/FastenNodeF4Discovery/Debug/FastenNodeF4Discovery.elf
+break UnitTest_Finished
+continue
+p 'UnitTest.c'::UnitTest_ValidCnt
+p 'UnitTest.c'::UnitTest_InvalidCnt
+quit
