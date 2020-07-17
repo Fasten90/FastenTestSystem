@@ -43,6 +43,16 @@ def start_qemu_test():
         if 'QEMU emulator version' not in str(stdout):
             raise Exception('QEMU version response was wrong!')
 
+        # gdb test
+        proc_gdb_test = subprocess.Popen('arm-none-eabi-gdb --version', shell=False, stdin=subprocess.PIPE,
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        stdout = proc_gdb_test.communicate()[0]
+        print('Result of GDB test: {}'.format(stdout))
+
+        if 'GNU gdb' not in str(stdout):
+            raise Exception('GDB version response was wrong!')
+
         print('Execute: {}'.format(qemu_command))
         proc_qemu = subprocess.Popen(qemu_command, shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
