@@ -2,6 +2,8 @@ import subprocess
 import time
 import re
 from enum import Enum
+import os
+import argparse
 
 
 class TestResultType(Enum):
@@ -10,26 +12,21 @@ class TestResultType(Enum):
     Max = 3
     Equal = 4
 
-# QEMU starting
-test_elf_path = r'd:\VG\Projects\AtollicWorkspace\FastenNodeF4Discovery\Debug\FastenNodeF4Discovery.elf'
 
-qemu_path = r'c:\Programs\Engineer\xpack-qemu-arm-2.8.0-8-win32-x64\xPack\QEMU ARM\2.8.0-8\bin\qemu-system-gnuarmeclipse.exe'
+def start_qemu_test(test_elf_path):
 
-qemu_machine = 'STM32F4-Discovery'
+    qemu_path = r'qemu-system-gnuarmeclipse.exe'
 
-qemu_args = '-machine {machine} -kernel {elf} -nographic -S -s'.format(
-    machine=qemu_machine,
-    elf=test_elf_path)
+    qemu_machine = 'STM32F4-Discovery'
 
-qemu_command = '{} {}'.format(qemu_path, qemu_args)
+    qemu_args = '-machine {machine} -kernel {elf} -nographic -S -s'.format(
+        machine=qemu_machine,
+        elf=test_elf_path)
 
-proc_qemu = None
-proc_gdb = None
+    qemu_command = '{} {}'.format(qemu_path, qemu_args)
 
-
-def start_qemu_test():
-    global proc_qemu
-    global proc_gdb
+    proc_qemu = None
+    proc_gdb = None
 
     try:
         # Start:
@@ -52,6 +49,10 @@ def start_qemu_test():
 
         if 'GNU gdb' not in str(stdout):
             raise Exception('GDB version response was wrong!')
+
+        # Check the test file is exists or not
+        if not os.path.exists(test_elf_path):
+            raise Exception('Test file is not exists: {}'.format(test_elf_path))
 
         print('Execute: {}'.format(qemu_command))
         proc_qemu = subprocess.Popen(qemu_command, shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -129,7 +130,12 @@ def check_results(value_result_list):
 
 
 def main():
-    value_result_list = start_qemu_test()
+    parser = argparse.ArgumentParser(description='FastenTestSystem')
+    parser.add_argument('--test_file_path', required=True,
+                        help='path for test file (E.g. .elf file)')
+    args = parser.parse_args()
+
+    value_result_list = start_qemu_test(test_elf_path=args.test_file_path)
     check_results(value_result_list)
 
 
