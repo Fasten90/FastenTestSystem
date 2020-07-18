@@ -4,6 +4,7 @@ import re
 from enum import Enum
 import os
 import argparse
+from sys import platform
 
 # These threads shall be terminated
 proc_qemu = None
@@ -39,6 +40,16 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     qemu_args = '-machine {machine} -kernel {elf} -nographic -S -s'.format(
         machine=qemu_machine,
         elf=test_elf_path)
+
+    if platform == 'linux' or platform == 'linux2':
+        # linux
+        qemu_path = './{bin_path}'.format(bin_path=qemu_path)
+    elif platform == 'darwin':
+        # OS X
+        raise Exception('OS X not supported yet')
+    elif platform == 'win32':
+        # Do nothing with the command
+        pass
 
     qemu_command = '{} {}'.format(qemu_path, qemu_args)
 
