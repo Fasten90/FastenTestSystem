@@ -47,7 +47,8 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
 
     try:
         #Test: qemu-system-gnuarmeclipse.exe --version
-        proc_qemu_test = subprocess.Popen('qemu-system-gnuarmeclipse --version', shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        qemu_test_cmd = '{bin} --version'.format(bin=qemu_path)
+        proc_qemu_test = subprocess.Popen(qemu_test_cmd, shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
         stdout = proc_qemu_test.communicate()[0]
     except Exception as ex:
