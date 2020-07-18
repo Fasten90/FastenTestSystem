@@ -13,9 +13,7 @@ class TestResultType(Enum):
     Equal = 4
 
 
-def start_qemu_test(test_elf_path):
-
-    qemu_path = r'qemu-system-gnuarmeclipse'
+def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
 
     qemu_machine = 'STM32F4-Discovery'
 
@@ -29,7 +27,10 @@ def start_qemu_test(test_elf_path):
     proc_gdb = None
 
     try:
-        # Start:
+        # Check
+        if not os.path.exists(qemu_path):
+            print('QEMU does not exists as path: {}. It is possible if it is on the PATH'.format(qemu_path))
+
         #Test: qemu-system-gnuarmeclipse.exe --version
         proc_qemu_test = subprocess.Popen('qemu-system-gnuarmeclipse --version', shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
@@ -98,6 +99,7 @@ def start_qemu_test(test_elf_path):
             proc_qemu.terminate()
         if proc_gdb:
             proc_gdb.terminate()
+        raise ex
 
 
 def check_results(value_result_list):
@@ -133,9 +135,13 @@ def main():
     parser = argparse.ArgumentParser(description='FastenTestSystem')
     parser.add_argument('--test_file_path', required=True,
                         help='path for test file (E.g. .elf file)')
+    parser.add_argument('--qemu_bin_path', required=False,
+                        default='qemu-system-gnuarmeclipse',
+                        help='path for QEMU')
     args = parser.parse_args()
 
-    value_result_list = start_qemu_test(test_elf_path=args.test_file_path)
+    value_result_list = start_qemu_test(test_elf_path=args.test_file_path,
+                                        qemu_path=args.qemu_bin_path)
     check_results(value_result_list)
 
 
