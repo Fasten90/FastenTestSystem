@@ -29,6 +29,11 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     global proc_qemu
     global proc_gdb
 
+    print('Given arguments:\n'
+          '  test_elf_path = {}\n'
+          '  qemu_path = {}'.format(
+            test_elf_path, qemu_path))
+
     qemu_machine = 'STM32F4-Discovery'
 
     qemu_args = '-machine {machine} -kernel {elf} -nographic -S -s'.format(
