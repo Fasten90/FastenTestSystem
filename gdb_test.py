@@ -56,14 +56,19 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     # Check the test file is exists or not
     if not os.path.exists(test_elf_path):
         raise Exception('Test file is not exists: {}'.format(test_elf_path))
+    else:
+        print('Test file seems exists')
 
     # Check
     if not os.path.exists(qemu_path):
         log_warning('QEMU does not exists as path: {}. It is possible if it is on the PATH'.format(qemu_path))
+    else:
+        print('QEMU executable file seems exists')
 
     try:
         #Test: qemu-system-gnuarmeclipse.exe --version
         qemu_test_cmd = '{bin} --version'.format(bin=qemu_path)
+        print('Test: {}'.format(qemu_test_cmd))
         proc_qemu_test = subprocess.Popen(qemu_test_cmd, shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
         stdout = proc_qemu_test.communicate()[0]
