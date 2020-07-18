@@ -15,7 +15,7 @@ class TestResultType(Enum):
 
 def start_qemu_test(test_elf_path):
 
-    qemu_path = r'qemu-system-gnuarmeclipse.exe'
+    qemu_path = r'qemu-system-gnuarmeclipse'
 
     qemu_machine = 'STM32F4-Discovery'
 
@@ -31,7 +31,7 @@ def start_qemu_test(test_elf_path):
     try:
         # Start:
         #Test: qemu-system-gnuarmeclipse.exe --version
-        proc_qemu_test = subprocess.Popen('qemu-system-gnuarmeclipse.exe --version', shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        proc_qemu_test = subprocess.Popen('qemu-system-gnuarmeclipse --version', shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
 
         stdout = proc_qemu_test.communicate()[0]
