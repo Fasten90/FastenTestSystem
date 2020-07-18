@@ -69,7 +69,7 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
         #Test: qemu-system-gnuarmeclipse.exe --version
         qemu_test_cmd = '{bin} --version'.format(bin=qemu_path)
         print('Test: {}'.format(qemu_test_cmd))
-        proc_qemu_test = subprocess.Popen(qemu_test_cmd, shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        proc_qemu_test = subprocess.Popen(qemu_test_cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                      stderr=subprocess.PIPE)
         stdout = proc_qemu_test.communicate()[0]
     except Exception as ex:
@@ -83,7 +83,7 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
 
     # gdb test
     try:
-        proc_gdb_test = subprocess.Popen('arm-none-eabi-gdb --version', shell=False, stdin=subprocess.PIPE,
+        proc_gdb_test = subprocess.Popen('arm-none-eabi-gdb --version', shell=True, stdin=subprocess.PIPE,
                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout = proc_gdb_test.communicate()[0]
     except Exception as ex:
@@ -99,7 +99,7 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
 
     # Execute QEMU
     print('Execute: {}'.format(qemu_command))
-    proc_qemu = subprocess.Popen(qemu_command, shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc_qemu = subprocess.Popen(qemu_command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # Wait until QEMU stand up
     # TODO: Risk: This is execution time dependent
@@ -115,7 +115,7 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
 
     # GDB
     print('Start GDB')
-    proc_gdb = subprocess.Popen('arm-none-eabi-gdb -x gdb_cmd', shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc_gdb = subprocess.Popen('arm-none-eabi-gdb -x gdb_cmd', shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # stdout = proc.communicate()[0]
     #print(stdout)
