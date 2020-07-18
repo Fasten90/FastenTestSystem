@@ -26,6 +26,38 @@ def log_warning(msg):
     print('[WARNING] ' + msg)
 
 
+def update_gdb_cmd(test_elf_path):
+    gdb_cmd_file_path = 'gdb_cmd'
+    #test_elf_path
+    # Read in the file
+    with open(gdb_cmd_file_path, 'r') as file:
+        gdb_cmd_content = file.read()
+
+    # Replace the target string
+    # TODO: Hardcoded TestSystem
+    gdb_cmd_content = gdb_cmd_content.replace('<test_file_path>', test_elf_path)
+
+    # Write the file out again
+    with open(gdb_cmd_file_path, 'w') as file:
+        file.write(gdb_cmd_content)
+
+
+def restore_gdb_cmd(test_elf_path):
+    gdb_cmd_file_path = 'gdb_cmd'
+    #test_elf_path
+    # Read in the file
+    with open(gdb_cmd_file_path, 'r') as file:
+        gdb_cmd_content = file.read()
+
+    # Replace the target string
+    # TODO: Hardcoded TestSystem
+    gdb_cmd_content = gdb_cmd_content.replace(test_elf_path, '<test_file_path>')
+
+    # Write the file out again
+    with open(gdb_cmd_file_path, 'w') as file:
+        file.write(gdb_cmd_content)
+
+
 def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     global proc_qemu
     global proc_gdb
@@ -113,15 +145,31 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     #proc = subprocess.Popen('arm-none-eabi-gdb', shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     # Failed on a stdin error
 
+    # Update gdb_cmd
+    print('Update gdb_cmd')
+    update_gdb_cmd(test_elf_path)
+
     # GDB
     print('Start GDB')
     proc_gdb = subprocess.Popen('arm-none-eabi-gdb -x gdb_cmd', shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # stdout = proc.communicate()[0]
     #print(stdout)
-    gdb_proc_result = proc_gdb.stdout.readlines()
-    print('proc_readline: {}'.format(gdb_proc_result))
-    gdb_proc_result = ''.join(item.decode() + ' ' for item in gdb_proc_result)
+    print('GDB execution result: ')
+    gdb_proc_result = ""
+    while True:
+        line = proc_gdb.stdout.readline()
+        if line:
+            line = line.decode()
+            gdb_proc_result += line
+            print(line.strip())
+        else:
+            break
+
+    #print('GDB process result: {}'.format(gdb_proc_result))
+    #gdb_proc_result = ''.join(item.decode() + ' ' for item in gdb_proc_result)
+
+    print('GDB finished')
 
     #print('proc_qemu.stdout'.format(proc_qemu.stdout))
     # Cannot readlines() for qemu process, because it is running yet
@@ -138,6 +186,9 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
         val_value = re_found[1]
         value_result_list.append((val_id, val_value))
         print('Val: {} = {}'.format(val_id, val_value))
+
+    # Finish / Clean
+    restore_gdb_cmd(test_elf_path)
 
     return value_result_list
 
