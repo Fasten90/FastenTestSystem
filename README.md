@@ -21,6 +21,7 @@ See the Azure pipeline for the project: [FastenHomeAut pipeline](https://dev.azu
 * Write UnitTests
 * Execute UnitTests at CI
 * Draw design
+* Issue: High prio: Only the last test execution result readed in this case
 * Issue: QEMU sometimes has stuck. Kill the process if there is issue
 * Improvement: Expected TestResults shall moved to a config file
   * E.g. JSON file?
