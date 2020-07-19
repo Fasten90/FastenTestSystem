@@ -162,7 +162,11 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     while True:
         line = proc_gdb.stdout.readline()
         if line:
-            line = line.decode()
+            try:
+                line = line.decode()
+            except UnicodeDecoreError as ex:
+                log_error('Exception: {}'.format(str(ex)))
+                line = str(line)
             gdb_proc_result += line
             print(line.strip())
         else:
