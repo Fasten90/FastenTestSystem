@@ -35,11 +35,13 @@ def update_gdb_cmd(test_elf_path):
 
     # Replace the target string
     # TODO: Hardcoded TestSystem
-    gdb_cmd_content = gdb_cmd_content.replace('<test_file_path>', test_elf_path)
+    gdb_cmd_new_content = gdb_cmd_content.replace('<test_file_path>', test_elf_path)
+    if gdb_cmd_new_content == gdb_cmd_content:
+        raise Exception('Failed update the gdb_cmd! Please revert it to default status')
 
     # Write the file out again
     with open(gdb_cmd_file_path, 'w') as file:
-        file.write(gdb_cmd_content)
+        file.write(gdb_cmd_new_content)
 
 
 def restore_gdb_cmd(test_elf_path):
