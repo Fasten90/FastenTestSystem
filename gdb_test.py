@@ -10,6 +10,18 @@ from sys import platform
 proc_qemu = None
 proc_gdb = None
 
+gdb_cmd_template = \
+"""file <test_file_path>
+target remote localhost:1234
+#load <test_file_path>
+break UnitTest_Finished
+continue
+p 'UnitTest.c'::UnitTest_ValidCnt
+p 'UnitTest.c'::UnitTest_InvalidCnt
+detach
+quit
+"""
+
 
 class TestResultType(Enum):
     DontCare = 1
@@ -28,16 +40,15 @@ def log_warning(msg):
 
 def update_gdb_cmd(test_elf_path):
     gdb_cmd_file_path = 'gdb_cmd'
-    #test_elf_path
-    # Read in the file
-    with open(gdb_cmd_file_path, 'r') as file:
-        gdb_cmd_content = file.read()
+
+    # Remove
+    if os.path.exists(gdb_cmd_file_path):
+        os.remove(gdb_cmd_file_path)
+        print('"{}" file has removed'.format(gdb_cmd_file_path))
 
     # Replace the target string
     # TODO: Hardcoded TestSystem
-    gdb_cmd_new_content = gdb_cmd_content.replace('<test_file_path>', test_elf_path)
-    if gdb_cmd_new_content == gdb_cmd_content:
-        raise Exception('Failed update the gdb_cmd! Please revert it to default status')
+    gdb_cmd_new_content = gdb_cmd_template.replace('<test_file_path>', test_elf_path)
 
     # Write the file out again
     with open(gdb_cmd_file_path, 'w') as file:
@@ -46,7 +57,6 @@ def update_gdb_cmd(test_elf_path):
 
 def restore_gdb_cmd(test_elf_path):
     gdb_cmd_file_path = 'gdb_cmd'
-    #test_elf_path
     # Read in the file
     with open(gdb_cmd_file_path, 'r') as file:
         gdb_cmd_content = file.read()
@@ -210,7 +220,7 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
 
 def check_results(value_result_list):
     expected_results = [
-        (1, 34, 'Successful', TestResultType.Min),
+        (1, 10, 'Successful', TestResultType.Min),
         (2, 0,  'Failed',     TestResultType.Equal)]
 
     for index, result_item in enumerate(value_result_list):
