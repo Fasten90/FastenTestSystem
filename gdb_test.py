@@ -179,10 +179,12 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
 
     #print('proc_qemu.stdout'.format(proc_qemu.stdout))
     # Cannot readlines() for qemu process, because it is running yet
-    # TODO: Patient kill?
-    proc_qemu.terminate()
+    print('Close QEMU')
+    proc_qemu.stdin.write('quit')
+    proc_qemu.kill()
 
     # Check GDB result
+    print('Collect GDB test results')
     # Example content: $1 = 34\r\n', b'$2 = 0\
     value_result_list = []
     regex_result = re.findall(r'\$(\d+) \= (\d+)', gdb_proc_result)

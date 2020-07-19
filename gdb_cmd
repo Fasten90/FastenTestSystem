@@ -6,4 +6,5 @@ break UnitTest_Finished
 continue
 p 'UnitTest.c'::UnitTest_ValidCnt
 p 'UnitTest.c'::UnitTest_InvalidCnt
+detach
 quit
