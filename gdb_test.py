@@ -143,7 +143,7 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
 
     # Execute QEMU
     # E.g. qemu-system-gnuarmeclipse.exe -machine STM32F4-Discovery -kernel FastenNodeF4Discovery.elf -nographic -S -s
-    print('Execute: {}'.format(qemu_command))
+    print('Execute: "{}"'.format(qemu_command))
     proc_qemu = subprocess.Popen(qemu_command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # Wait until QEMU stand up
@@ -174,8 +174,8 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
         line = proc_gdb.stdout.readline()
         if line:
             try:
-                line = line.decode()
-            except UnicodeDecoreError as ex:
+                line = line.decode('ISO-8859-1')
+            except UnicodeDecodeError as ex:
                 log_error('Exception: {}'.format(str(ex)))
                 line = str(line)
             gdb_proc_result += line
