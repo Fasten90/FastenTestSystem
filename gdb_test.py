@@ -193,12 +193,15 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     print('Close QEMU')
     # 1. Try with 'quit' command
     qemu_output = proc_qemu.communicate(input=b'quit\n')[0]
-    print('QEMU output result: {}'.format(qemu_output.decode()))
+    print('QEMU output result: "{}"'.format(qemu_output.decode()))
     time.sleep(2)
     # 2. Try to kill if it is exists yet
-    if proc_qemu:
-        proc_qemu.kill()
-    # TODO: Seems not working
+    if proc_qemu and proc_qemu.returncode is None:
+            proc_qemu.terminate()
+            time.sleep(1)
+            if proc_qemu and proc_qemu.returncode is None:
+                proc_qemu.kill()
+    print('QEMU result code: "{}"'.format(proc_qemu.returncode))
 
     # Check GDB result
     print('Collect GDB test results')

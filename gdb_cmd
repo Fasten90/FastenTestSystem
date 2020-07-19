@@ -1,6 +1,5 @@
 file <test_file_path>
 target remote localhost:1234
-#load d:/VG/Projects/AtollicWorkspace/FastenNodeF4Discovery/Debug/FastenNodeF4Discovery.elf
 #load <test_file_path>
 break UnitTest_Finished
 continue
