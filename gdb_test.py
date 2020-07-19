@@ -132,6 +132,7 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     # Start Normal phase
 
     # Execute QEMU
+    # E.g. qemu-system-gnuarmeclipse.exe -machine STM32F4-Discovery -kernel FastenNodeF4Discovery.elf -nographic -S -s
     print('Execute: {}'.format(qemu_command))
     proc_qemu = subprocess.Popen(qemu_command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -180,8 +181,14 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     #print('proc_qemu.stdout'.format(proc_qemu.stdout))
     # Cannot readlines() for qemu process, because it is running yet
     print('Close QEMU')
-    proc_qemu.stdin.write('quit')
-    proc_qemu.kill()
+    # 1. Try with 'quit' command
+    qemu_output = proc_qemu.communicate(input=b'quit\n')[0]
+    print('QEMU output result: {}'.format(qemu_output.decode()))
+    time.sleep(2)
+    # 2. Try to kill if it is exists yet
+    if proc_qemu:
+        proc_qemu.kill()
+    # TODO: Seems not working
 
     # Check GDB result
     print('Collect GDB test results')
