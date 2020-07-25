@@ -245,14 +245,38 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     print('Collect GDB test results')
     # Example content: $1 = 34\r\n', b'$2 = 0\
     value_result_list = []
-    regex_pattern = re.compile(r'Breakpoint \d, .*\nconString=.* \".*\",\n.*, line\=\d+\)\n.*\n.*\n.*\n.*\n$\d+ \= \".*\"', re.MULTILINE)
+    # Note: The collector regex expression contains System Unit-test dependency (e.g. UnitTest assert arguments)
+    # https://regex101.com/r/Abm3Zm/3
+    regex_pattern = re.compile(r'Breakpoint \d, .*[\r\n]+ *conString\=0x[\d\w]+ \"(.*)[\r\n]* *errorString\=0x[\d\w]+ \".*[\r\n]* *line\=(\d+)\)[\r\n]* *at .*[\r\n]+\d+.*[\r\n]+.*[\r\n]+.*[\r\n]+\$\d+ \= \"(.*)\"', re.MULTILINE)
     regex_result = re.findall(regex_pattern, gdb_proc_result)
     for re_found in regex_result:
         # Result is tuple, e.g. (1, 34)
-        val_id = re_found[0]
-        val_value = re_found[1]
-        value_result_list.append((val_id, val_value))
-        print('Val: {} = {}'.format(val_id, val_value))
+        assert_msg = re_found[0]  # TODO: Split end '",'
+        assert_line = re_found[1]
+        assert_result = re_found[2]
+        value_result_list.append((assert_msg, assert_line, assert_result))
+        #print('Val: {} = {}'.format(val_id, val_value))
+
+    test_assert_regex_found = len(regex_result)
+    print('Found Test assert results: {}'.format(test_assert_regex_found))
+
+    # Cross-check:
+    # Note: GDB command dependency
+    # E.g. "Successful: 573, failed: 0"
+    summary_result = re.search(r'Successful: (\d+), failed: (\d+)', gdb_proc_result)
+    res_all_successful = int(summary_result[1])
+    res_all_failed = int(summary_result[2])
+    res_all_count = res_all_successful + res_all_failed
+
+    print('Found test_assert: {}, GDB counts: {} : It is: {}'.format(
+        test_assert_regex_found,
+        res_all_count,
+        'OK' if test_assert_regex_found == res_all_count else 'Wrong'
+    ))
+
+    if True:
+        for item in regex_result:
+            print('{} {} {}'.format(str(item[0]).strip(), item[1], item[2]))
 
     # Finish / Clean
     restore_gdb_cmd(test_elf_path)

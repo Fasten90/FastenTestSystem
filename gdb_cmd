@@ -1,6 +1,6 @@
-file D:/VG/Projects/AtollicWorkspace/FastenNodeF4Discovery/Debug/FastenNodeF4Discovery.elf
+file <test_file_path>
 target remote localhost:1234
-#load D:/VG/Projects/AtollicWorkspace/FastenNodeF4Discovery/Debug/FastenNodeF4Discovery.elf
+#load <test_file_path>
 # ASSERT breakpoint
 break UnitTest_CheckResult
 # UnitTest finished breakpoint
