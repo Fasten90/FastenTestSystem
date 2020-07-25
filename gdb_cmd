@@ -1,6 +1,6 @@
-file <test_file_path>
+file D:/VG/Projects/AtollicWorkspace/FastenNodeF4Discovery/Debug/FastenNodeF4Discovery.elf
 target remote localhost:1234
-#load <test_file_path>
+#load D:/VG/Projects/AtollicWorkspace/FastenNodeF4Discovery/Debug/FastenNodeF4Discovery.elf
 # ASSERT breakpoint
 break UnitTest_CheckResult
 # UnitTest finished breakpoint
@@ -11,22 +11,22 @@ set $failed = 0
 while(1)
     p UnitTest_Finished_flag
     if $
-        print "Finished"
-        print "Successful:"
-        print $successful
-        print "Failed"
-        print $failed
+        print "Finished!"
+        printf "Successful: %d, failed: %d", $successful, $failed
+        #if $failed
+        #    print "[error] There was failed test assert!"
+        #end
         detach
         quit
     else
         p isValid
         if $
             set $successful = $successful + 1 
-            print "Valid"
+            print "Valid test assert"
             continue   
         else
             set $failed = $failed + 1
-            print "Invalid"
+            print "Invalid test assert"
             print "Frame"
             frame
             print "Backtrace"

@@ -10,6 +10,7 @@ from sys import platform
 proc_qemu = None
 proc_gdb = None
 
+# TODO: Add comments to dependency of TestSystem - C code
 gdb_cmd_template = \
 """file <test_file_path>
 target remote localhost:1234
@@ -24,22 +25,22 @@ set $failed = 0
 while(1)
     p UnitTest_Finished_flag
     if $
-        print "Finished"
-        print "Successful:"
-        print $successful
-        print "Failed"
-        print $failed
+        print "Finished!"
+        printf "Successful: %d, failed: %d", $successful, $failed
+        #if $failed
+        #    print "[error] There was failed test assert!"
+        #end
         detach
         quit
     else
         p isValid
         if $
             set $successful = $successful + 1 
-            print "Valid"
+            print "Valid test assert"
             continue   
         else
             set $failed = $failed + 1
-            print "Invalid"
+            print "Invalid test assert"
             print "Frame"
             frame
             print "Backtrace"
@@ -238,11 +239,14 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
                 proc_qemu.kill()
     print('QEMU result code: "{}"'.format(proc_qemu.returncode))
 
+    # TODO: Save to a log file
+    # TODO: Move to another file/class the parsing test execution data
     # Check GDB result
     print('Collect GDB test results')
     # Example content: $1 = 34\r\n', b'$2 = 0\
     value_result_list = []
-    regex_result = re.findall(r'\$(\d+) \= (\d+)', gdb_proc_result)
+    regex_pattern = re.compile(r'Breakpoint \d, .*\nconString=.* \".*\",\n.*, line\=\d+\)\n.*\n.*\n.*\n.*\n$\d+ \= \".*\"', re.MULTILINE)
+    regex_result = re.findall(regex_pattern, gdb_proc_result)
     for re_found in regex_result:
         # Result is tuple, e.g. (1, 34)
         val_id = re_found[0]
@@ -308,7 +312,7 @@ def main():
             proc_gdb.terminate()
         raise ex
     # 2. Phase: Test result check
-    check_results(value_result_list)
+    #check_results(value_result_list)
 
 
 if __name__ == '__main__':
