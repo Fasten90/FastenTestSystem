@@ -21,7 +21,7 @@ See the Azure pipeline for the project: [FastenHomeAut pipeline](https://dev.azu
 * Write UnitTests
 * Execute UnitTests at CI
 * Draw design
-* Issue: High prio: Only the last test execution result readed in this case
+* Issue: High prio: Only the last test execution result read in this case
 * Issue: QEMU sometimes has stuck. Kill the process if there is issue
 * Improvement: Expected TestResults shall moved to a config file
   * E.g. JSON file?
@@ -32,3 +32,4 @@ See the Azure pipeline for the project: [FastenHomeAut pipeline](https://dev.azu
 * Improvement: Move 'machine' to argument, now it is hardcoded
 * Improvement: Next level in test execution: Execute one-by-one the tests and check result
 * Improvement (Extremely high level, near to the SAFETY - ASIL-D requirements): Check the assert messages, send communication informations (E.g. ASSERT message, measurement time, etc)
+* New Feature: Independtly from QEMU + GDB: searching tests (UNIT_TEST / TEST_ASSERT)

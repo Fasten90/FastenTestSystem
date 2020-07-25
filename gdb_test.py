@@ -14,12 +14,47 @@ gdb_cmd_template = \
 """file <test_file_path>
 target remote localhost:1234
 #load <test_file_path>
+# ASSERT breakpoint
+break UnitTest_CheckResult
+# UnitTest finished breakpoint
 break UnitTest_Finished
 continue
-p 'UnitTest.c'::UnitTest_ValidCnt
-p 'UnitTest.c'::UnitTest_InvalidCnt
-detach
-quit
+set $successful = 0
+set $failed = 0
+while(1)
+    p UnitTest_Finished_flag
+    if $
+        print "Finished"
+        print "Successful:"
+        print $successful
+        print "Failed"
+        print $failed
+        detach
+        quit
+    else
+        p isValid
+        if $
+            set $successful = $successful + 1 
+            print "Valid"
+            continue   
+        else
+            set $failed = $failed + 1
+            print "Invalid"
+            print "Frame"
+            frame
+            print "Backtrace"
+            backtrace
+            continue
+        end
+    end
+end
+
+#backtrace
+#frame
+#p 'UnitTest.c'::UnitTest_ValidCnt
+#p 'UnitTest.c'::UnitTest_InvalidCnt
+#detach
+#quit
 """
 
 
