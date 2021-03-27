@@ -10,16 +10,52 @@ from sys import platform
 proc_qemu = None
 proc_gdb = None
 
+# TODO: Add comments to dependency of TestSystem - C code
 gdb_cmd_template = \
 """file <test_file_path>
 target remote localhost:1234
 #load <test_file_path>
+# ASSERT breakpoint
+break UnitTest_CheckResult
+# UnitTest finished breakpoint
 break UnitTest_Finished
 continue
-p 'UnitTest.c'::UnitTest_ValidCnt
-p 'UnitTest.c'::UnitTest_InvalidCnt
-detach
-quit
+set $successful = 0
+set $failed = 0
+while(1)
+    p UnitTest_Finished_flag
+    if $
+        print "Finished!"
+        printf "Successful: %d, failed: %d", $successful, $failed
+        #if $failed
+        #    print "[error] There was failed test assert!"
+        #end
+        detach
+        quit
+    else
+        p isValid
+        if $
+            set $successful = $successful + 1 
+            print "Valid test assert"
+            continue   
+        else
+            set $failed = $failed + 1
+            print "Invalid test assert"
+            print "Frame"
+            frame
+            print "Backtrace"
+            backtrace
+            continue
+        end
+    end
+end
+
+#backtrace
+#frame
+#p 'UnitTest.c'::UnitTest_ValidCnt
+#p 'UnitTest.c'::UnitTest_InvalidCnt
+#detach
+#quit
 """
 
 
@@ -113,8 +149,9 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
         #Test: qemu-system-gnuarmeclipse.exe --version
         qemu_test_cmd = '{bin} --version'.format(bin=qemu_path)
         print('Test: {}'.format(qemu_test_cmd))
-        proc_qemu_test = subprocess.Popen(qemu_test_cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE)
+        proc_qemu_test = subprocess.Popen(qemu_test_cmd,
+                                          shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                          stderr=subprocess.PIPE)
         stdout = proc_qemu_test.communicate()[0]
     except Exception as ex:
         log_error('QEMU test has failed!')
@@ -127,8 +164,9 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
 
     # gdb test
     try:
-        proc_gdb_test = subprocess.Popen('arm-none-eabi-gdb --version', shell=True, stdin=subprocess.PIPE,
-                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc_gdb_test = subprocess.Popen('arm-none-eabi-gdb --version',
+                                         shell=True, stdin=subprocess.PIPE,
+                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout = proc_gdb_test.communicate()[0]
     except Exception as ex:
         log_error('GDB test has failed!')
@@ -137,7 +175,7 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     print('Result of GDB test: {}'.format(stdout))
 
     if 'GNU gdb' not in str(stdout):
-        raise Exception('GDB version response was wrong!')
+        raise Exception('GDB version response was wrong: {}'.format(stdout))
 
     # Start Normal phase
 
@@ -203,17 +241,44 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
                 proc_qemu.kill()
     print('QEMU result code: "{}"'.format(proc_qemu.returncode))
 
+    # TODO: Save to a log file
+    # TODO: Move to another file/class the parsing test execution data
     # Check GDB result
     print('Collect GDB test results')
     # Example content: $1 = 34\r\n', b'$2 = 0\
     value_result_list = []
-    regex_result = re.findall(r'\$(\d+) \= (\d+)', gdb_proc_result)
+    # Note: The collector regex expression contains System Unit-test dependency (e.g. UnitTest assert arguments)
+    # https://regex101.com/r/Abm3Zm/3
+    regex_pattern = re.compile(r'Breakpoint \d, .*[\r\n]+ *conString\=0x[\d\w]+ \"(.*)[\r\n]* *errorString\=0x[\d\w]+ \".*[\r\n]* *line\=(\d+)\)[\r\n]* *at .*[\r\n]+\d+.*[\r\n]+.*[\r\n]+.*[\r\n]+\$\d+ \= \"(.*)\"', re.MULTILINE)
+    regex_result = re.findall(regex_pattern, gdb_proc_result)
     for re_found in regex_result:
         # Result is tuple, e.g. (1, 34)
-        val_id = re_found[0]
-        val_value = re_found[1]
-        value_result_list.append((val_id, val_value))
-        print('Val: {} = {}'.format(val_id, val_value))
+        assert_msg = re_found[0]  # TODO: Split end '",'
+        assert_line = re_found[1]
+        assert_result = re_found[2]
+        value_result_list.append((assert_msg, assert_line, assert_result))
+        #print('Val: {} = {}'.format(val_id, val_value))
+
+    test_assert_regex_found = len(regex_result)
+    print('Found Test assert results: {}'.format(test_assert_regex_found))
+
+    # Cross-check:
+    # Note: GDB command dependency
+    # E.g. "Successful: 573, failed: 0"
+    summary_result = re.search(r'Successful: (\d+), failed: (\d+)', gdb_proc_result)
+    res_all_successful = int(summary_result[1])
+    res_all_failed = int(summary_result[2])
+    res_all_count = res_all_successful + res_all_failed
+
+    print('Found test_assert: {}, GDB counts: {} : It is: {}'.format(
+        test_assert_regex_found,
+        res_all_count,
+        'OK' if test_assert_regex_found == res_all_count else 'Wrong'
+    ))
+
+    if True:
+        for item in regex_result:
+            print('{} {} {}'.format(str(item[0]).strip(), item[1], item[2]))
 
     # Finish / Clean
     restore_gdb_cmd(test_elf_path)
@@ -273,7 +338,7 @@ def main():
             proc_gdb.terminate()
         raise ex
     # 2. Phase: Test result check
-    check_results(value_result_list)
+    #check_results(value_result_list)
 
 
 if __name__ == '__main__':
