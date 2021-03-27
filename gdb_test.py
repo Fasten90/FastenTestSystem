@@ -175,8 +175,7 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     print('Result of GDB test: {}'.format(stdout))
 
     if 'GNU gdb' not in str(stdout):
-        #raise Exception('GDB version response was wrong!')
-        print('GDB version response was wrong: {}'.format(stdout))
+        raise Exception('GDB version response was wrong: {}'.format(stdout))
 
     # Start Normal phase
 
