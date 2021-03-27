@@ -149,8 +149,9 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
         #Test: qemu-system-gnuarmeclipse.exe --version
         qemu_test_cmd = '{bin} --version'.format(bin=qemu_path)
         print('Test: {}'.format(qemu_test_cmd))
-        proc_qemu_test = subprocess.Popen(qemu_test_cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE)
+        proc_qemu_test = subprocess.Popen(qemu_test_cmd,
+                                          shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                          stderr=subprocess.PIPE)
         stdout = proc_qemu_test.communicate()[0]
     except Exception as ex:
         log_error('QEMU test has failed!')
@@ -163,8 +164,9 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
 
     # gdb test
     try:
-        proc_gdb_test = subprocess.Popen('arm-none-eabi-gdb --version', shell=True, stdin=subprocess.PIPE,
-                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc_gdb_test = subprocess.Popen('arm-none-eabi-gdb --version',
+                                         shell=True, stdin=subprocess.PIPE,
+                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout = proc_gdb_test.communicate()[0]
     except Exception as ex:
         log_error('GDB test has failed!')
@@ -173,7 +175,8 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     print('Result of GDB test: {}'.format(stdout))
 
     if 'GNU gdb' not in str(stdout):
-        raise Exception('GDB version response was wrong!')
+        #raise Exception('GDB version response was wrong!')
+        print('GDB version response was wrong: {}'.format(stdout))
 
     # Start Normal phase
 
