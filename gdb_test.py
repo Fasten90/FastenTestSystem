@@ -6,6 +6,7 @@ import os
 import argparse
 from sys import platform
 
+
 # These threads shall be terminated
 proc_qemu = None
 proc_gdb = None
@@ -248,15 +249,19 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     # Example content: $1 = 34\r\n', b'$2 = 0\
     value_result_list = []
     # Note: The collector regex expression contains System Unit-test dependency (e.g. UnitTest assert arguments)
-    # https://regex101.com/r/Abm3Zm/3
-    regex_pattern = re.compile(r'Breakpoint \d, .*[\r\n]+ *conString\=0x[\d\w]+ \"(.*)[\r\n]* *errorString\=0x[\d\w]+ \".*[\r\n]* *line\=(\d+)\)[\r\n]* *at .*[\r\n]+\d+.*[\r\n]+.*[\r\n]+.*[\r\n]+\$\d+ \= \"(.*)\"', re.MULTILINE)
+    # https://regex101.com/r/Abm3Zm/5
+    regex_pattern = re.compile(r'Breakpoint \d, .*[\r\n]+ *conString\=0x[\d\w]+ \"(?P<assert_string>.*)\"\, [\r\n]* *errorString\=0x[\d\w]+ \"(?P<error_string>.*)\"\, *line\=(?P<line>\d+)\)[\r\n]* *at .*[\r\n]+\d+.*[\r\n]+.*[\r\n]+.*[\r\n]+\$\d+ \= \"(?P<assert_result>.*)\"', re.MULTILINE)
     regex_result = re.findall(regex_pattern, gdb_proc_result)
     for re_found in regex_result:
         # Result is tuple, e.g. (1, 34)
-        assert_msg = re_found[0]  # TODO: Split end '",'
-        assert_line = re_found[1]
-        assert_result = re_found[2]
-        value_result_list.append((assert_msg, assert_line, assert_result))
+        # TODO: re_found
+        re_found_dict = re_found.groupdict()
+        assert_msg = re_found_dict['assert_string']  # TODO: Split end '",' - Maybe Done
+        assert_line = re_found_dict['line']
+        assert_result = re_found_dict['assert_result']
+        err_string = re.found_dict['error_string']
+        value_result_list.append((assert_msg, assert_line, assert_result, err_string))
+        # TODO:User dictionary
         #print('Val: {} = {}'.format(val_id, val_value))
 
     test_assert_regex_found = len(regex_result)
@@ -286,6 +291,7 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     return value_result_list
 
 
+# TODO:User dictionary
 def check_results(value_result_list):
     expected_results = [
         (1, 10, 'Successful', TestResultType.Min),  # TODO: Read it from a config
