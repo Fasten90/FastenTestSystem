@@ -288,7 +288,7 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
 
 def check_results(value_result_list):
     expected_results = [
-        (1, 10, 'Successful', TestResultType.Min),
+        (1, 10, 'Successful', TestResultType.Min),  # TODO: Read it from a config
         (2, 0,  'Failed',     TestResultType.Equal)]
 
     for index, result_item in enumerate(value_result_list):
@@ -313,6 +313,7 @@ def check_results(value_result_list):
             raise Exception('Unhandled TestResultType')
         print('Result of "{}" test was okay. Expected: {}, test result: {}, condition type: {}'.format(
             test_name, expected_val, test_return_val, str(test_res_type)))
+        # TODO: Export to CSV
 
 
 def main():
@@ -338,7 +339,7 @@ def main():
             proc_gdb.terminate()
         raise ex
     # 2. Phase: Test result check
-    #check_results(value_result_list)
+    check_results(value_result_list)
 
 
 if __name__ == '__main__':
