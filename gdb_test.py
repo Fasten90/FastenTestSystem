@@ -5,6 +5,7 @@ from enum import Enum
 import os
 import argparse
 from sys import platform
+import csv
 
 
 # These threads shall be terminated
@@ -289,6 +290,31 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     restore_gdb_cmd(test_elf_path)
 
     return value_result_list
+
+
+
+#Copied
+def export_to_csv(export_filename, warning_list):
+    workspace_directory = os.getenv("Build.Repository.LocalPath", None)
+
+    # Create CSV
+    with open(export_filename, mode='w', newline='', encoding='utf-8') as csv_file:
+        fieldnames = ["Dir", "FileName", "Line", "Col", "WarnId", "WarningMessage"]
+        if warning_list:
+            # Cross-check the header length
+            assert len(warning_list[0]) == len(fieldnames)
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in warning_list:
+            # Update fields
+            #if workspace_directory:
+            for remove_workspace in removing_workspace_directories:
+                if row["Dir"].startswith(remove_workspace):
+                    row["Dir"] = row["Dir"].replace(remove_workspace, "")  # Remove unnecessary start part
+                    break
+            # Save fields
+            writer.writerow(row)
+        print("Warnings exported to '{}'".format(export_filename))
 
 
 # TODO:User dictionary
