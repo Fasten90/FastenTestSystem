@@ -16,11 +16,12 @@ class TestReference(unittest.TestCase):
         #exec_commands = ['gcc' + ' ' + includes + ' ' + arguments + ' ' + '-c utils/UnitTest.c -o unittest.o',
         #                'gcc' + ' ' + includes + ' ' + arguments + ' ' + 'test/system_test/main.c -o main.o',
         #                'gcc' + ' ' + 'unittest.o' + ' ' + 'main.o']
-        exec_commands = ['gcc' + ' ' + includes + ' ' + arguments + ' ' + '-c utils/UnitTest.c test/system_test/main.c']
+        exec_commands = ['gcc' + ' ' + includes + ' ' + arguments + ' ' + '-c utils/UnitTest.c test/system_test/main.c',
+                         'gcc' + ' ' + '-o test_app' + ' ' + 'main.o' + ' ' + 'unittest.o']
         if platform == 'linux' or platform == 'linux2':
             # linux
-            exec_commands += ['chmod u+x ./main.o',
-                                './main.o']
+            exec_commands += ['chmod u+x ./test_app.o',
+                                './test_app.o']
 
         from subprocess import Popen, PIPE, CalledProcessError
 
