@@ -18,7 +18,7 @@ class TestReference(unittest.TestCase):
         #out, err = p.communicate()
 
         from subprocess import Popen, PIPE, CalledProcessError
-        with Popen(exec_command, stdout=PIPE, bufsize=1, universal_newlines=True) as p:
+        with Popen(exec_command, stdout=PIPE, bufsize=1, universal_newlines=True, shell=True) as p:
             for line in p.stdout:
                 print(line, end='')  # process line here
 

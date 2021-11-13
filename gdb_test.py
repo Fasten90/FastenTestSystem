@@ -354,6 +354,8 @@ def main():
                         help='path for exported CSV')
     args = parser.parse_args()
 
+    # TODO: Add verbose/debug
+
     # 1. Phase: Test execution
     try:
         value_result_list = start_qemu_test(test_elf_path=args.test_file_path,

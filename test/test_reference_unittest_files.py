@@ -20,7 +20,7 @@ class TestReference(unittest.TestCase):
         from subprocess import Popen, PIPE, CalledProcessError
 
         for cmd in exec_commands:
-            with Popen(cmd, stdout=PIPE, bufsize=1, universal_newlines=True) as p:
+            with Popen(cmd, stdout=PIPE, bufsize=1, universal_newlines=True, shell=True) as p:
                 for line in p.stdout:
                     print(line, end='')  # process line here
 
