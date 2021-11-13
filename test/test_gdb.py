@@ -13,7 +13,7 @@ class TestReference(unittest.TestCase):
         args = '--test_file_path {}'.format(test_file_path)
 
         #subprocess.run(['python', python_file + ' ' + args])
-        exec_command = 'python' + ' ' + python_file + ' ' + args
+        exec_command = 'python3' + ' ' + python_file + ' ' + args
         #p = subprocess.Popen(exec_command, shell=True, stdout=subprocess.PIPE)
         #out, err = p.communicate()
 
