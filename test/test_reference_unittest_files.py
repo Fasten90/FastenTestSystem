@@ -8,6 +8,8 @@ class TestReference(unittest.TestCase):
     def test_reference_unittest_files(self):
         import subprocess
 
+        from sys import platform
+
         # These commands are refers to util and test files
         includes = '-I utils -I test/system_test'
         arguments = '-D CONFIG_MODULE_UNITTEST_ENABLE=1'
