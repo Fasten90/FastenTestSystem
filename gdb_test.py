@@ -12,6 +12,9 @@ import csv
 proc_qemu = None
 proc_gdb = None
 
+# TODO: Handle it by arg?
+DEBUG = False
+
 # TODO: Add comments to dependency of TestSystem - C code
 gdb_cmd_template = \
 """file <test_file_path>
@@ -255,8 +258,8 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
 
     for re_found in regex_pattern.finditer(gdb_proc_result):
         # TODO: Debug code
-        debug = False
-        if debug:
+
+        if DEBUG:
             print(m.groupdict())
         re_found_dict = re_found.groupdict()
         assert_msg = re_found_dict['assert_string']  # TODO: Split end '",' - Maybe Done
@@ -284,9 +287,9 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
         'OK' if found_test_assert_regex_count == res_all_count else 'Wrong'
     ))
 
-    if True:
-        for item in regex_result:
-            print('{} {} {}'.format(str(item[0]).strip(), item[1], item[2]))
+    if DEBUG:
+        for item in value_result_list:
+            print(''.join([' ' + dictionary_elem for dictionary_elem in item.items()]))
 
     # Finish / Clean
     restore_gdb_cmd(test_elf_path)
@@ -312,33 +315,41 @@ def export_to_csv(export_filename, result_list):
 # TODO: Use dictionary
 # TODO: Update: FileName, LineNumber
 def check_results(value_result_list):
-    expected_results = [
-        (1, 10, 'Successful', TestResultType.Min),  # TODO: Read it from a config
-        (2, 0,  'Failed',     TestResultType.Equal)]
+
+    #expected_results = [
+    #    (1, 10, 'Successful', TestResultType.Min),  # TODO: Read it from a config
+    #    (2, 0,  'Failed',     TestResultType.Equal)]
 
     for index, result_item in enumerate(value_result_list):
         # Id
-        assert int(result_item[0]) == expected_results[index][0]
+        # TODO: Maybe it was planned to be a comparation to a fix config/result list.
+        #assert int(result_item[0]) == expected_results[index][0]
 
         # TODO: Generalize
 
-        expected_val = expected_results[index][1]
-        test_name = expected_results[index][2]
-        test_res_type = expected_results[index][3]
-        test_return_val = int(result_item[1])
-        if test_res_type == TestResultType.Equal:
-            assert test_return_val == expected_val
-        elif test_res_type == TestResultType.Min:
-            assert test_return_val >= expected_val
-        elif test_res_type == TestResultType.Max:
-            assert test_return_val <= expected_val
-        elif test_res_type == TestResultType.DontCare:
-            pass
-        else:
-            raise Exception('Unhandled TestResultType')
-        print('Result of "{}" test was okay. Expected: {}, test result: {}, condition type: {}'.format(
-            test_name, expected_val, test_return_val, str(test_res_type)))
-        # TODO: Export to CSV
+        #expected_val = expected_results[index][1]
+        #test_name = expected_results[index][2]
+        #test_res_type = expected_results[index][3]
+        #test_return_val = int(result_item[1])
+        #if test_res_type == TestResultType.Equal:
+        #    assert test_return_val == expected_val
+        #elif test_res_type == TestResultType.Min:
+        #    assert test_return_val >= expected_val
+        #elif test_res_type == TestResultType.Max:
+        #    assert test_return_val <= expected_val
+        #elif test_res_type == TestResultType.DontCare:
+        #    pass
+        #else:
+        #    raise Exception('Unhandled TestResultType')
+        test_name = result_item[0]
+        line = result_item[1]
+        valid_message = result_item[2]
+        err_msg = result_item[3]
+
+        assert 'Valid' in valid_message
+
+        print('Result of "{}" test was okay. At {}, test result: {}, error message: {}'.format(
+            test_name, line, valid_message, err_msg))
 
 
 def main():
