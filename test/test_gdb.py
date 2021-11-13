@@ -12,6 +12,12 @@ class TestReference(unittest.TestCase):
         test_file_path = os.path.dirname(__file__) + '/' + 'reference' + '/' + 'FastenHomeAut'
         args = '--test_file_path {}'.format(test_file_path)
 
+        # If pipeline
+        is_pipeline = os.getenv('PIPELINE_WORKSPACE')
+        if is_pipeline:
+            QEMU_BIN_PATH = os.getenv('QEMU_BIN_PATH')
+            args += ' ' + '--relative_qemu_bin_path="../opt/{qemu_bin_path}'.format(qemu_bin_path=QEMU_BIN_PATH)
+
         #subprocess.run(['python', python_file + ' ' + args])
         exec_command = 'python' + ' ' + '-u' + ' ' + python_file + ' ' + args
         #p = subprocess.Popen(exec_command, shell=True, stdout=subprocess.PIPE)
