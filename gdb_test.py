@@ -292,32 +292,23 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     return value_result_list
 
 
-
-#Copied
-def export_to_csv(export_filename, warning_list):
-    workspace_directory = os.getenv("Build.Repository.LocalPath", None)
-
+def export_to_csv(export_filename, result_list):
     # Create CSV
     with open(export_filename, mode='w', newline='', encoding='utf-8') as csv_file:
-        fieldnames = ["Dir", "FileName", "Line", "Col", "WarnId", "WarningMessage"]
-        if warning_list:
-            # Cross-check the header length
-            assert len(warning_list[0]) == len(fieldnames)
+        fieldnames = ['TestName', 'ResType', 'Expected', 'Result']
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         writer.writeheader()
-        for row in warning_list:
-            # Update fields
-            #if workspace_directory:
-            for remove_workspace in removing_workspace_directories:
-                if row["Dir"].startswith(remove_workspace):
-                    row["Dir"] = row["Dir"].replace(remove_workspace, "")  # Remove unnecessary start part
-                    break
-            # Save fields
-            writer.writerow(row)
-        print("Warnings exported to '{}'".format(export_filename))
+        for row in result_list:
+            expected_val = expected_results[index][1]
+            test_name = expected_results[index][2]
+            test_res_type = expected_results[index][3]
+            test_return_val = int(result_item[1])
+            writer.writerow([test_name, test_res_type, expected_val, test_return_val])
+        print('Exported to {}'.format(export_filename))
 
 
-# TODO:User dictionary
+# TODO: Use dictionary
+# TODO: Update: FileName, LineNumber
 def check_results(value_result_list):
     expected_results = [
         (1, 10, 'Successful', TestResultType.Min),  # TODO: Read it from a config
@@ -355,6 +346,9 @@ def main():
     parser.add_argument('--qemu_bin_path', required=False,
                         default='qemu-system-gnuarmeclipse',
                         help='path for QEMU')
+    parser.add_argument('--export-csv', required=False,
+                        default='TestResults.csv',
+                        help='path for exported CSV')
     args = parser.parse_args()
 
     # 1. Phase: Test execution
@@ -372,6 +366,8 @@ def main():
         raise ex
     # 2. Phase: Test result check
     check_results(value_result_list)
+    # 3. Phase: Export
+    export_to_csv(args.export_csv, value_result_list)
 
 
 if __name__ == '__main__':
