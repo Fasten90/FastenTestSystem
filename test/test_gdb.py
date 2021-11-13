@@ -8,12 +8,12 @@ class TestReference(unittest.TestCase):
     def test_reference(self):
         import subprocess
 
-        python_file = os.path.join(os.path.dirname(__file__), '..', 'gdb_test.py')
+        python_file = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', 'gdb_test.py'))
         test_file_path = os.path.dirname(__file__) + '/' + 'reference' + '/' + 'FastenHomeAut'
         args = '--test_file_path {}'.format(test_file_path)
 
         #subprocess.run(['python', python_file + ' ' + args])
-        exec_command = 'python3' + ' ' + python_file + ' ' + args
+        exec_command = 'python' + ' ' + '-u' + ' ' + python_file + ' ' + args
         #p = subprocess.Popen(exec_command, shell=True, stdout=subprocess.PIPE)
         #out, err = p.communicate()
 
