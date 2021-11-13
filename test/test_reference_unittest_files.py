@@ -20,8 +20,8 @@ class TestReference(unittest.TestCase):
                          'gcc' + ' ' + '-o test_app' + ' ' + 'main.o' + ' ' + 'UnitTest.o']
         if platform == 'linux' or platform == 'linux2':
             # linux
-            exec_commands += ['chmod u+x ./test_app.o',
-                                './test_app.o']
+            exec_commands += ['chmod u+x ./test_app',
+                                './test_app']
 
         from subprocess import Popen, PIPE, CalledProcessError
 
