@@ -17,7 +17,7 @@ class TestReference(unittest.TestCase):
         #                'gcc' + ' ' + includes + ' ' + arguments + ' ' + 'test/system_test/main.c -o main.o',
         #                'gcc' + ' ' + 'unittest.o' + ' ' + 'main.o']
         exec_commands = ['gcc' + ' ' + includes + ' ' + arguments + ' ' + '-c utils/UnitTest.c test/system_test/main.c',
-                         'gcc' + ' ' + '-o test_app' + ' ' + 'main.o' + ' ' + 'unittest.o']
+                         'gcc' + ' ' + '-o test_app' + ' ' + 'main.o' + ' ' + 'UnitTest.o']
         if platform == 'linux' or platform == 'linux2':
             # linux
             exec_commands += ['chmod u+x ./test_app.o',
