@@ -262,13 +262,13 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
         if DEBUG:
             print(m.groupdict())
         re_found_dict = re_found.groupdict()
-        assert_msg = re_found_dict['assert_string']  # TODO: Split end '",' - Maybe Done
-        assert_line = re_found_dict['line']
-        assert_result = re_found_dict['assert_result']
-        err_string = re_found_dict['error_string']
-        value_result_list.append((assert_msg, assert_line, assert_result, err_string))
-        # TODO:User dictionary
-        #print('Val: {} = {}'.format(val_id, val_value))
+        unit_test_dict = {
+            'assert_string': re_found_dict['assert_string'],
+            'line': re_found_dict['line'],
+            'assert_result': re_found_dict['assert_result'],
+            'error_string': re_found_dict['error_string']
+        }
+        value_result_list.append(unit_test_dict)
 
     found_test_assert_regex_count = len(value_result_list)
     print('Found Test assert results: {}'.format(found_test_assert_regex_count))
@@ -300,19 +300,14 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
 def export_to_csv(export_filename, result_list):
     # Create CSV
     with open(export_filename, mode='w', newline='', encoding='utf-8') as csv_file:
-        fieldnames = ['TestName', 'ResType', 'Expected', 'Result']
+        fieldnames = ['assert_string', 'line', 'assert_result', 'error_string']
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         writer.writeheader()
         for row in result_list:
-            expected_val = expected_results[index][1]
-            test_name = expected_results[index][2]
-            test_res_type = expected_results[index][3]
-            test_return_val = int(result_item[1])
-            writer.writerow([test_name, test_res_type, expected_val, test_return_val])
+            writer.writerow(row)
         print('Exported to {}'.format(export_filename))
 
 
-# TODO: Use dictionary
 # TODO: Update: FileName, LineNumber
 def check_results(value_result_list):
 
@@ -341,15 +336,10 @@ def check_results(value_result_list):
         #    pass
         #else:
         #    raise Exception('Unhandled TestResultType')
-        test_name = result_item[0]
-        line = result_item[1]
-        valid_message = result_item[2]
-        err_msg = result_item[3]
-
-        assert 'Valid' in valid_message
+        assert 'Valid' in result_item['assert_result']
 
         print('Result of "{}" test was okay. At {}, test result: {}, error message: {}'.format(
-            test_name, line, valid_message, err_msg))
+            result_item['assert_string'], result_item['line'], result_item['assert_result'], result_item['error_string']))
 
 
 def main():
