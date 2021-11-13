@@ -252,21 +252,23 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     # Note: The collector regex expression contains System Unit-test dependency (e.g. UnitTest assert arguments)
     # https://regex101.com/r/Abm3Zm/5
     regex_pattern = re.compile(r'Breakpoint \d, .*[\r\n]+ *conString\=0x[\d\w]+ \"(?P<assert_string>.*)\"\, [\r\n]* *errorString\=0x[\d\w]+ \"(?P<error_string>.*)\"\, *line\=(?P<line>\d+)\)[\r\n]* *at .*[\r\n]+\d+.*[\r\n]+.*[\r\n]+.*[\r\n]+\$\d+ \= \"(?P<assert_result>.*)\"', re.MULTILINE)
-    regex_result = re.findall(regex_pattern, gdb_proc_result)
-    for re_found in regex_result:
-        # Result is tuple, e.g. (1, 34)
-        # TODO: re_found
+
+    for re_found in regex_pattern.finditer(gdb_proc_result):
+        # TODO: Debug code
+        debug = False
+        if debug:
+            print(m.groupdict())
         re_found_dict = re_found.groupdict()
         assert_msg = re_found_dict['assert_string']  # TODO: Split end '",' - Maybe Done
         assert_line = re_found_dict['line']
         assert_result = re_found_dict['assert_result']
-        err_string = re.found_dict['error_string']
+        err_string = re_found_dict['error_string']
         value_result_list.append((assert_msg, assert_line, assert_result, err_string))
         # TODO:User dictionary
         #print('Val: {} = {}'.format(val_id, val_value))
 
-    test_assert_regex_found = len(regex_result)
-    print('Found Test assert results: {}'.format(test_assert_regex_found))
+    found_test_assert_regex_count = len(value_result_list)
+    print('Found Test assert results: {}'.format(found_test_assert_regex_count))
 
     # Cross-check:
     # Note: GDB command dependency
@@ -277,9 +279,9 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     res_all_count = res_all_successful + res_all_failed
 
     print('Found test_assert: {}, GDB counts: {} : It is: {}'.format(
-        test_assert_regex_found,
+        found_test_assert_regex_count,
         res_all_count,
-        'OK' if test_assert_regex_found == res_all_count else 'Wrong'
+        'OK' if found_test_assert_regex_count == res_all_count else 'Wrong'
     ))
 
     if True:
