@@ -257,8 +257,8 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     # Example content: $1 = 34\r\n', b'$2 = 0\
     value_result_list = []
     # Note: The collector regex expression contains System Unit-test dependency (e.g. UnitTest assert arguments)
-    # https://regex101.com/r/Abm3Zm/6
-    regex_pattern = re.compile(r'Breakpoint \d, .* \(isValid\=\d .*\,[\r\n]+ *conString\=0x[\d\w]+ \"(?P<assert_string>.*)\"\,([\r\n]+| )errorString\=0x[\d\w]+ \"(?P<error_string>.*)\"\,([\r\n]+| )*line\=(?P<line>\d+)\)[\r\n]* *at .*[\r\n]+(\d+.*[\r\n]+)?\$\d+.*[\r\n]+\$\d+ \= 0x[a-f0-9]+ \".*\"[\r\n]+\$\d+.*[\r\n]+\$\d+ \= \"(?P<assert_result>.*)\"', re.MULTILINE)
+    # https://regex101.com/r/Abm3Zm/7
+    regex_pattern = re.compile(r'Breakpoint \d, .* \(isValid\=\d .*\,[\r\n]+ *conString\=0x[\d\w]+ \"(?P<assert_string>.*)\"\,([\r\n]+| )errorString\=0x[\d\w]+ \"(?P<error_string>.*)\"\,([\r\n]+| )*line\=(?P<line>\d+)\)[\r\n]* *at .*[\r\n]+(\d+.*[\r\n]+)?\$\d+.*[\r\n]+\$\d+ \= 0x[a-f0-9]+ \"(?P<file_path>.*)\"[\r\n]+\$\d+.*[\r\n]+\$\d+ \= \"(?P<assert_result>.*)\"', re.MULTILINE)
 
     for re_found in regex_pattern.finditer(gdb_proc_result):
         if DEBUG:
@@ -268,7 +268,8 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
             'assert_string': re_found_dict['assert_string'],
             'line': re_found_dict['line'],
             'assert_result': re_found_dict['assert_result'],
-            'error_string': re_found_dict['error_string']
+            'error_string': re_found_dict['error_string'],
+            'file_path': re_found_dict['file_path'],
         }
         value_result_list.append(unit_test_dict)
 
@@ -302,7 +303,7 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
 def export_to_csv(export_filename, result_list):
     # Create CSV
     with open(export_filename, mode='w', newline='', encoding='utf-8') as csv_file:
-        fieldnames = ['assert_string', 'line', 'assert_result', 'error_string']
+        fieldnames = ['file_path', 'line', 'assert_string', 'assert_result', 'error_string']
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         writer.writeheader()
         for row in result_list:
@@ -340,8 +341,8 @@ def check_results(value_result_list):
         #    raise Exception('Unhandled TestResultType')
         assert 'Valid' in result_item['assert_result']
 
-        print('Result of "{}" test was okay. At {}, test result: {}, error message: {}'.format(
-            result_item['assert_string'], result_item['line'], result_item['assert_result'], result_item['error_string']))
+        print('Result of "{}" test was okay. At {}:{}, test result: {}, error message: {}'.format(
+            result_item['assert_string'], result_item['file_path'], result_item['line'], result_item['assert_result'], result_item['error_string']))
 
 
 def main():
