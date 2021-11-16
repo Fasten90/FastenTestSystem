@@ -27,9 +27,11 @@ break UnitTest_Finished
 continue
 set $successful = 0
 set $failed = 0
+set $file = "Unknown"
 while(1)
     p UnitTest_Finished_flag
     if $
+        # Finish Unittest execution
         print "Finished!"
         printf "Successful: %d, failed: %d", $successful, $failed
         #if $failed
@@ -38,6 +40,8 @@ while(1)
         detach
         quit
     else
+        p UnitTest_FileName
+        set $file = $
         p isValid
         if $
             set $successful = $successful + 1 
@@ -253,12 +257,10 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     # Example content: $1 = 34\r\n', b'$2 = 0\
     value_result_list = []
     # Note: The collector regex expression contains System Unit-test dependency (e.g. UnitTest assert arguments)
-    # https://regex101.com/r/Abm3Zm/5
-    regex_pattern = re.compile(r'Breakpoint \d, .*[\r\n]+ *conString\=0x[\d\w]+ \"(?P<assert_string>.*)\"\, [\r\n]* *errorString\=0x[\d\w]+ \"(?P<error_string>.*)\"\, *line\=(?P<line>\d+)\)[\r\n]* *at .*[\r\n]+\d+.*[\r\n]+.*[\r\n]+.*[\r\n]+\$\d+ \= \"(?P<assert_result>.*)\"', re.MULTILINE)
+    # https://regex101.com/r/Abm3Zm/6
+    regex_pattern = re.compile(r'Breakpoint \d, .* \(isValid\=\d .*\,[\r\n]+ *conString\=0x[\d\w]+ \"(?P<assert_string>.*)\"\,([\r\n]+| )errorString\=0x[\d\w]+ \"(?P<error_string>.*)\"\,([\r\n]+| )*line\=(?P<line>\d+)\)[\r\n]* *at .*[\r\n]+(\d+.*[\r\n]+)?\$\d+.*[\r\n]+\$\d+ \= 0x[a-f0-9]+ \".*\"[\r\n]+\$\d+.*[\r\n]+\$\d+ \= \"(?P<assert_result>.*)\"', re.MULTILINE)
 
     for re_found in regex_pattern.finditer(gdb_proc_result):
-        # TODO: Debug code
-
         if DEBUG:
             print(m.groupdict())
         re_found_dict = re_found.groupdict()
