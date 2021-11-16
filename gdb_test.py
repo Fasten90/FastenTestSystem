@@ -251,14 +251,17 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     print('QEMU result code: "{}"'.format(proc_qemu.returncode))
 
     # TODO: Save to a log file
+    with open ('QEMU_GDB_execution.log', 'wt', newline='') as f:
+        f.write(gdb_proc_result)
+
     # TODO: Move to another file/class the parsing test execution data
     # Check GDB result
     print('Collect GDB test results')
     # Example content: $1 = 34\r\n', b'$2 = 0\
     value_result_list = []
     # Note: The collector regex expression contains System Unit-test dependency (e.g. UnitTest assert arguments)
-    # https://regex101.com/r/Abm3Zm/7
-    regex_pattern = re.compile(r'Breakpoint \d, .* \(isValid\=\d .*\,[\r\n]+ *conString\=0x[\d\w]+ \"(?P<assert_string>.*)\"\,([\r\n]+| )errorString\=0x[\d\w]+ \"(?P<error_string>.*)\"\,([\r\n]+| )*line\=(?P<line>\d+)\)[\r\n]* *at .*[\r\n]+(\d+.*[\r\n]+)?\$\d+.*[\r\n]+\$\d+ \= 0x[a-f0-9]+ \"(?P<file_path>.*)\"[\r\n]+\$\d+.*[\r\n]+\$\d+ \= \"(?P<assert_result>.*)\"', re.MULTILINE)
+    # https://regex101.com/r/Abm3Zm/8
+    regex_pattern = re.compile(r'Breakpoint \d, .* \(isValid\=\d .*\, [\r\n]+ *conString\=0x[a-f0-9]+ \"(?P<assert_string>.*)\"\.*\, [\r\n]* *errorString\=0x[a-f0-9]+ \"(?P<error_string>.*)\"\, [\r\n]* *line\=(?P<line>\d+)\)[\r\n]* *at .*[\r\n]+(\d+.*[\r\n]+)?\$\d+.*[\r\n]+\$\d+ \= 0x[a-f0-9]+ \"(?P<file_path>.*)\"[\r\n]+\$\d+.*[\r\n]+\$\d+ \= \"(?P<assert_result>.*)\"', re.MULTILINE)
 
     for re_found in regex_pattern.finditer(gdb_proc_result):
         if DEBUG:
@@ -269,12 +272,12 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
             'line': re_found_dict['line'],
             'assert_result': re_found_dict['assert_result'],
             'error_string': re_found_dict['error_string'],
-            'file_path': re_found_dict['file_path'],
+            'file_path': re_found_dict['file_path'].replace('\\', '/').split('/')[-1],
         }
         value_result_list.append(unit_test_dict)
 
     found_test_assert_regex_count = len(value_result_list)
-    print('Found Test assert results: {}'.format(found_test_assert_regex_count))
+    print('Test assert result count: {}'.format(found_test_assert_regex_count))
 
     # Cross-check:
     # Note: GDB command dependency
