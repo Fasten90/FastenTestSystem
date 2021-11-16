@@ -250,10 +250,11 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
                 proc_qemu.kill()
     print('QEMU result code: "{}"'.format(proc_qemu.returncode))
 
-    # TODO: Save to a log file
+    # Save to a log file
     with open ('QEMU_GDB_execution.log', 'wt', newline='') as f:
         f.write(gdb_proc_result)
 
+    # TODO: Refactor, Split it
     # TODO: Move to another file/class the parsing test execution data
     # Check GDB result
     print('Collect GDB test results')
@@ -282,11 +283,13 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     # Cross-check:
     # Note: GDB command dependency
     # E.g. "Successful: 573, failed: 0"
+    # TODO: Save it to dictionary
     summary_result = re.search(r'Successful: (\d+), failed: (\d+)', gdb_proc_result)
     res_all_successful = int(summary_result[1])
     res_all_failed = int(summary_result[2])
     res_all_count = res_all_successful + res_all_failed
 
+    # TODO: Print at end + Exit code
     print('Found test_assert: {}, GDB counts: {} : It is: {}'.format(
         found_test_assert_regex_count,
         res_all_count,
