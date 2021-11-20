@@ -27,9 +27,11 @@ break UnitTest_Finished
 continue
 set $successful = 0
 set $failed = 0
+set $file = "Unknown"
 while(1)
     p UnitTest_Finished_flag
     if $
+        # Finish Unittest execution
         print "Finished!"
         printf "Successful: %d, failed: %d", $successful, $failed
         #if $failed
@@ -38,6 +40,8 @@ while(1)
         detach
         quit
     else
+        p UnitTest_FileName
+        set $file = $
         p isValid
         if $
             set $successful = $successful + 1 
@@ -246,19 +250,21 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
                 proc_qemu.kill()
     print('QEMU result code: "{}"'.format(proc_qemu.returncode))
 
-    # TODO: Save to a log file
+    # Save to a log file
+    with open ('QEMU_GDB_execution.log', 'wt', newline='') as f:
+        f.write(gdb_proc_result)
+
+    # TODO: Refactor, Split it
     # TODO: Move to another file/class the parsing test execution data
     # Check GDB result
     print('Collect GDB test results')
     # Example content: $1 = 34\r\n', b'$2 = 0\
     value_result_list = []
     # Note: The collector regex expression contains System Unit-test dependency (e.g. UnitTest assert arguments)
-    # https://regex101.com/r/Abm3Zm/5
-    regex_pattern = re.compile(r'Breakpoint \d, .*[\r\n]+ *conString\=0x[\d\w]+ \"(?P<assert_string>.*)\"\, [\r\n]* *errorString\=0x[\d\w]+ \"(?P<error_string>.*)\"\, *line\=(?P<line>\d+)\)[\r\n]* *at .*[\r\n]+\d+.*[\r\n]+.*[\r\n]+.*[\r\n]+\$\d+ \= \"(?P<assert_result>.*)\"', re.MULTILINE)
+    # https://regex101.com/r/Abm3Zm/8
+    regex_pattern = re.compile(r'Breakpoint \d, .* \(isValid\=\d .*\, [\r\n]+ *conString\=0x[a-f0-9]+ \"(?P<assert_string>.*)\"\.*\, [\r\n]* *errorString\=0x[a-f0-9]+ \"(?P<error_string>.*)\"\, [\r\n]* *line\=(?P<line>\d+)\)[\r\n]* *at .*[\r\n]+(\d+.*[\r\n]+)?\$\d+.*[\r\n]+\$\d+ \= 0x[a-f0-9]+ \"(?P<file_path>.*)\"[\r\n]+\$\d+.*[\r\n]+\$\d+ \= \"(?P<assert_result>.*)\"', re.MULTILINE)
 
     for re_found in regex_pattern.finditer(gdb_proc_result):
-        # TODO: Debug code
-
         if DEBUG:
             print(m.groupdict())
         re_found_dict = re_found.groupdict()
@@ -266,21 +272,24 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
             'assert_string': re_found_dict['assert_string'],
             'line': re_found_dict['line'],
             'assert_result': re_found_dict['assert_result'],
-            'error_string': re_found_dict['error_string']
+            'error_string': re_found_dict['error_string'],
+            'file_path': re_found_dict['file_path'].replace('\\', '/').split('/')[-1],
         }
         value_result_list.append(unit_test_dict)
 
     found_test_assert_regex_count = len(value_result_list)
-    print('Found Test assert results: {}'.format(found_test_assert_regex_count))
+    print('Test assert result count: {}'.format(found_test_assert_regex_count))
 
     # Cross-check:
     # Note: GDB command dependency
     # E.g. "Successful: 573, failed: 0"
+    # TODO: Save it to dictionary
     summary_result = re.search(r'Successful: (\d+), failed: (\d+)', gdb_proc_result)
     res_all_successful = int(summary_result[1])
     res_all_failed = int(summary_result[2])
     res_all_count = res_all_successful + res_all_failed
 
+    # TODO: Print at end + Exit code
     print('Found test_assert: {}, GDB counts: {} : It is: {}'.format(
         found_test_assert_regex_count,
         res_all_count,
@@ -300,7 +309,7 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
 def export_to_csv(export_filename, result_list):
     # Create CSV
     with open(export_filename, mode='w', newline='', encoding='utf-8') as csv_file:
-        fieldnames = ['assert_string', 'line', 'assert_result', 'error_string']
+        fieldnames = ['file_path', 'line', 'assert_string', 'assert_result', 'error_string']
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         writer.writeheader()
         for row in result_list:
@@ -338,8 +347,8 @@ def check_results(value_result_list):
         #    raise Exception('Unhandled TestResultType')
         assert 'Valid' in result_item['assert_result']
 
-        print('Result of "{}" test was okay. At {}, test result: {}, error message: {}'.format(
-            result_item['assert_string'], result_item['line'], result_item['assert_result'], result_item['error_string']))
+        print('Result of "{}" test was okay. At {}:{}, test result: {}, error message: {}'.format(
+            result_item['assert_string'], result_item['file_path'], result_item['line'], result_item['assert_result'], result_item['error_string']))
 
 
 def main():
