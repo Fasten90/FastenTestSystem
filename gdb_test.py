@@ -115,21 +115,7 @@ def restore_gdb_cmd(test_elf_path):
         file.write(gdb_cmd_content)
 
 
-def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
-    global proc_qemu
-    global proc_gdb
-
-    print('Given arguments:\n'
-          '  test_elf_path = {}\n'
-          '  qemu_path = {}'.format(
-            test_elf_path, qemu_path))
-
-    qemu_machine = 'STM32F4-Discovery'
-
-    qemu_args = '-machine {machine} -kernel {elf} -nographic -S -s'.format(
-        machine=qemu_machine,
-        elf=test_elf_path)
-
+def check_qemu_path(qemu_path):
     if platform == 'linux' or platform == 'linux2':
         # linux
         qemu_path = './{bin_path}'.format(bin_path=qemu_path)
@@ -139,8 +125,10 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     elif platform == 'win32':
         # Do nothing with the command
         pass
+    return qemu_path
 
-    qemu_command = '{} {}'.format(qemu_path, qemu_args)
+
+def check_and_prepare(test_elf_path, qemu_path):
 
     # Check the test file is exists or not
     if not os.path.exists(test_elf_path):
@@ -186,8 +174,8 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     if 'GNU gdb' not in str(stdout):
         raise Exception('GDB version response was wrong: {}'.format(stdout))
 
-    # Start Normal phase
 
+def execute_qemu_test(qemu_command, test_elf_path):
     # Execute QEMU
     # E.g. qemu-system-gnuarmeclipse.exe -machine STM32F4-Discovery -kernel FastenNodeF4Discovery.elf -nographic -S -s
     print('Execute: "{}"'.format(qemu_command))
@@ -254,8 +242,11 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     with open('QEMU_GDB_execution.log', 'wt', newline='') as f:
         f.write(gdb_proc_result)
 
-    # TODO: Refactor, Split it
-    # TODO: Move to another file/class the parsing test execution data
+    return gdb_proc_result
+
+
+def check_test_execution_result(gdb_proc_result):
+
     # Check GDB result
     print('Collect GDB test results')
     # Example content: $1 = 34\r\n', b'$2 = 0\
@@ -299,6 +290,36 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     if DEBUG:
         for item in value_result_list:
             print(''.join([' ' + dictionary_elem for dictionary_elem in item.items()]))
+
+    return value_result_list
+
+
+def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
+    global proc_qemu
+    global proc_gdb
+
+    print('Given arguments:\n'
+          '  test_elf_path = {}\n'
+          '  qemu_path = {}'.format(
+            test_elf_path, qemu_path))
+
+    qemu_machine = 'STM32F4-Discovery'
+
+    qemu_args = '-machine {machine} -kernel {elf} -nographic -S -s'.format(
+        machine=qemu_machine,
+        elf=test_elf_path)
+
+    qemu_path = check_qemu_path(qemu_path)
+
+    qemu_command = '{} {}'.format(qemu_path, qemu_args)
+
+    check_and_prepare(test_elf_path, qemu_path)
+
+    # Test
+    gdb_proc_result = execute_qemu_test(qemu_command, test_elf_path)
+
+    # Check
+    value_result_list = check_test_execution_result(gdb_proc_result)
 
     # Finish / Clean
     restore_gdb_cmd(test_elf_path)
