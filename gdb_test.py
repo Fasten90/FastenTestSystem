@@ -12,8 +12,6 @@ import csv
 proc_qemu = None
 proc_gdb = None
 
-# TODO: Handle it by arg?
-DEBUG = False
 
 # TODO: Add comments to dependency of TestSystem - C code
 gdb_cmd_template = \
@@ -245,7 +243,7 @@ def execute_qemu_test(qemu_command, test_elf_path):
     return gdb_proc_result
 
 
-def check_test_execution_result(gdb_proc_result):
+def check_test_execution_result(gdb_proc_result, debug=False):
 
     # Check GDB result
     print('Collect GDB test results')
@@ -256,7 +254,7 @@ def check_test_execution_result(gdb_proc_result):
     regex_pattern = re.compile(r'Breakpoint \d, .* \(isValid\=\d .*\, [\r\n]+ *conString\=0x[a-f0-9]+ \"(?P<assert_string>.*)\"\.*\, [\r\n]* *errorString\=0x[a-f0-9]+ \"(?P<error_string>.*)\"\, [\r\n]* *line\=(?P<line>\d+)\)[\r\n]* *at .*[\r\n]+(\d+.*[\r\n]+)?\$\d+.*[\r\n]+\$\d+ \= 0x[a-f0-9]+ \"(?P<file_path>.*)\"[\r\n]+\$\d+.*[\r\n]+\$\d+ \= \"(?P<assert_result>.*)\"', re.MULTILINE)
 
     for re_found in regex_pattern.finditer(gdb_proc_result):
-        if DEBUG:
+        if debug:
             print(m.groupdict())
         re_found_dict = re_found.groupdict()
         unit_test_dict = {
@@ -287,14 +285,14 @@ def check_test_execution_result(gdb_proc_result):
         'OK' if found_test_assert_regex_count == res_all_count else 'Wrong'
     ))
 
-    if DEBUG:
+    if debug:
         for item in value_result_list:
             print(''.join([' ' + dictionary_elem for dictionary_elem in item.items()]))
 
     return value_result_list
 
 
-def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
+def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse', debug=False):
     global proc_qemu
     global proc_gdb
 
@@ -319,7 +317,7 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     gdb_proc_result = execute_qemu_test(qemu_command, test_elf_path)
 
     # Check
-    value_result_list = check_test_execution_result(gdb_proc_result)
+    value_result_list = check_test_execution_result(gdb_proc_result, debug)
 
     # Finish / Clean
     restore_gdb_cmd(test_elf_path)
@@ -362,14 +360,16 @@ def main():
     parser.add_argument('--export-csv', required=False,
                         default='TestResults.csv',
                         help='path for exported CSV')
+    parser.add_argument('--verbose', required=False,
+                        default=False, action='store_true',
+                        help='path for exported CSV')
     args = parser.parse_args()
-
-    # TODO: Add verbose/debug
 
     # 1. Phase: Test execution
     try:
         value_result_list = start_qemu_test(test_elf_path=args.test_file_path,
-                                            qemu_path=args.qemu_bin_path)
+                                            qemu_path=args.qemu_bin_path,
+                                            debug=args.verbose)
     except Exception as ex:
         global proc_qemu
         global proc_gdb
