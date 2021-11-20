@@ -320,31 +320,7 @@ def export_to_csv(export_filename, result_list):
 # TODO: Update: FileName, LineNumber
 def check_results(value_result_list):
 
-    #expected_results = [
-    #    (1, 10, 'Successful', TestResultType.Min),  # TODO: Read it from a config
-    #    (2, 0,  'Failed',     TestResultType.Equal)]
-
     for index, result_item in enumerate(value_result_list):
-        # Id
-        # TODO: Maybe it was planned to be a comparation to a fix config/result list.
-        #assert int(result_item[0]) == expected_results[index][0]
-
-        # TODO: Generalize
-
-        #expected_val = expected_results[index][1]
-        #test_name = expected_results[index][2]
-        #test_res_type = expected_results[index][3]
-        #test_return_val = int(result_item[1])
-        #if test_res_type == TestResultType.Equal:
-        #    assert test_return_val == expected_val
-        #elif test_res_type == TestResultType.Min:
-        #    assert test_return_val >= expected_val
-        #elif test_res_type == TestResultType.Max:
-        #    assert test_return_val <= expected_val
-        #elif test_res_type == TestResultType.DontCare:
-        #    pass
-        #else:
-        #    raise Exception('Unhandled TestResultType')
         assert 'Valid' in result_item['assert_result']
 
         print('Result of "{}" test was okay. At {}:{}, test result: {}, error message: {}'.format(
