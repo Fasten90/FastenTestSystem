@@ -344,8 +344,12 @@ def check_results(value_result_list):
     for index, result_item in enumerate(value_result_list):
         assert 'Valid' in result_item['assert_result']
 
-        print('Result of "{}" test was okay. At {}:{}, test result: {}, error message: {}'.format(
-            result_item['assert_string'], result_item['file_path'], result_item['line'], result_item['assert_result'], result_item['error_string']))
+        print('{:30s}: {:4s}  {:80s} {:25s} {}'.format(
+            result_item['file_path'],
+            result_item['line'],
+            result_item['assert_string'],
+            result_item['assert_result'],
+            result_item['error_string']))
 
 
 def main():
