@@ -251,7 +251,7 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     print('QEMU result code: "{}"'.format(proc_qemu.returncode))
 
     # Save to a log file
-    with open ('QEMU_GDB_execution.log', 'wt', newline='') as f:
+    with open('QEMU_GDB_execution.log', 'wt', newline='') as f:
         f.write(gdb_proc_result)
 
     # TODO: Refactor, Split it
