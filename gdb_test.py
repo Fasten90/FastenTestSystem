@@ -292,7 +292,7 @@ def check_test_execution_result(gdb_proc_result, debug=False):
     return value_result_list
 
 
-def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse', debug=False):
+def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse', qemu_machine = 'STM32F4-Discovery', debug=False):
     global proc_qemu
     global proc_gdb
 
@@ -300,8 +300,6 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse', debug=
           '  test_elf_path = {}\n'
           '  qemu_path = {}'.format(
             test_elf_path, qemu_path))
-
-    qemu_machine = 'STM32F4-Discovery'
 
     qemu_args = '-machine {machine} -kernel {elf} -nographic -S -s'.format(
         machine=qemu_machine,
@@ -357,6 +355,9 @@ def main():
     parser.add_argument('--qemu_bin_path', required=False,
                         default='qemu-system-gnuarmeclipse',
                         help='path for QEMU')
+    parser.add_argument('--qemu_machine', required=False,
+                        default='STM32F4-Discovery',
+                        help='QEMU target machine name: e.g. STM32F4-Discovery')
     parser.add_argument('--export-csv', required=False,
                         default='TestResults.csv',
                         help='path for exported CSV')
@@ -369,6 +370,7 @@ def main():
     try:
         value_result_list = start_qemu_test(test_elf_path=args.test_file_path,
                                             qemu_path=args.qemu_bin_path,
+                                            qemu_machine=args.qemu_machine,
                                             debug=args.verbose)
     except Exception as ex:
         global proc_qemu
