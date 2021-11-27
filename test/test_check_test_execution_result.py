@@ -27,7 +27,7 @@ $1721 = \"Finished!\"
 Successful: 1, failed: 0[Inferior 1 (Remote target) detached]
 
         """
-        value_result_list = gdb_test.check_test_execution_result(test_gdb_proc_result)
+        value_result_list, summary_result_info = gdb_test.check_test_execution_result(test_gdb_proc_result)
         expected_result = {
             'assert_string': 'test condition',
             'line': '2587',
@@ -47,7 +47,7 @@ Successful: 1, failed: 0[Inferior 1 (Remote target) detached]
             MISSED END OF UNITTEST
         """
         with self.assertRaises(Exception) as context:
-            value_result_list = gdb_test.check_test_execution_result(test_gdb_proc_result)
+            value_result_list, summary_result_info = gdb_test.check_test_execution_result(test_gdb_proc_result)
 
         print(context.exception)
         self.assertIn('UnitTest assert', str(context.exception))
@@ -70,7 +70,7 @@ $4 = \"Valid test assert\"
 MISSED END OF UNITTEST
         """
         with self.assertRaises(Exception) as context:
-            value_result_list = gdb_test.check_test_execution_result(test_gdb_proc_result)
+            value_result_list, summary_result_info = gdb_test.check_test_execution_result(test_gdb_proc_result)
         print(context.exception)
         self.assertIn('UnitTest_End', str(context.exception))
 
