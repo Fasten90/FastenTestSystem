@@ -267,6 +267,11 @@ def check_test_execution_result(gdb_proc_result, debug=False):
         value_result_list.append(unit_test_dict)
 
     found_test_assert_regex_count = len(value_result_list)
+    if not found_test_assert_regex_count:
+        raise Exception('There is no executed UnitTest assert.\n'
+                        '  Please check the utils\\UnitTest.c.\n'
+                        '  Check the GDB connection\n'
+                        '  Is there unittest assert which called?')
     print('Test assert result count: {}'.format(found_test_assert_regex_count))
 
     # Cross-check:
@@ -274,6 +279,11 @@ def check_test_execution_result(gdb_proc_result, debug=False):
     # E.g. "Successful: 573, failed: 0"
     # TODO: Save it to dictionary
     summary_result = re.search(r'Successful: (\d+), failed: (\d+)', gdb_proc_result)
+    if not summary_result:
+        # It is empty, report the issue for the User
+        raise Exception(r"UnitTest result has not catch. Please check the 'utils\UnitTest.c' - UnitTest_End method. It is called correctly?\n"
+                        r"  Expected message in the UnitTest / UART: 'UnitTest run successfully'\n"
+                        r"  Expected message in the GDB: 'Successful: 1, failed: 0'")
     res_all_successful = int(summary_result[1])
     res_all_failed = int(summary_result[2])
     res_all_count = res_all_successful + res_all_failed
