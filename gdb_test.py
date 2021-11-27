@@ -277,7 +277,6 @@ def check_test_execution_result(gdb_proc_result, debug=False):
     # Cross-check:
     # Note: GDB command dependency
     # E.g. "Successful: 573, failed: 0"
-    # TODO: Save it to dictionary
     summary_result = re.search(r'Successful: (\d+), failed: (\d+)', gdb_proc_result)
     if not summary_result:
         # It is empty, report the issue for the User
@@ -295,11 +294,17 @@ def check_test_execution_result(gdb_proc_result, debug=False):
         'OK' if found_test_assert_regex_count == res_all_count else 'Wrong'
     ))
 
+    summary_result_info = {
+        'All successful tests': res_all_successful,
+        'All failed tests': res_all_failed,
+        'All tests count': res_all_count
+    }
+
     if debug:
         for item in value_result_list:
             print(''.join([' ' + dictionary_elem for dictionary_elem in item.items()]))
 
-    return value_result_list
+    return value_result_list, summary_result_info
 
 
 def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse', qemu_machine = 'STM32F4-Discovery', debug=False):
@@ -325,12 +330,12 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse', qemu_m
     gdb_proc_result = execute_qemu_test(qemu_command, test_elf_path)
 
     # Check
-    value_result_list = check_test_execution_result(gdb_proc_result, debug)
+    value_result_list, summary_result_info = check_test_execution_result(gdb_proc_result, debug)
 
     # Finish / Clean
     restore_gdb_cmd(test_elf_path)
 
-    return value_result_list
+    return value_result_list, summary_result_info
 
 
 def export_to_csv(export_filename, result_list):
@@ -378,7 +383,7 @@ def main():
 
     # 1. Phase: Test execution
     try:
-        value_result_list = start_qemu_test(test_elf_path=args.test_file_path,
+        value_result_list, summary_result_info = start_qemu_test(test_elf_path=args.test_file_path,
                                             qemu_path=args.qemu_bin_path,
                                             qemu_machine=args.qemu_machine,
                                             debug=args.verbose)
@@ -395,6 +400,7 @@ def main():
     check_results(value_result_list)
     # 3. Phase: Export
     export_to_csv(args.export_csv, value_result_list)
+    # TODO: Do something with summary_result_info
 
 
 if __name__ == '__main__':
