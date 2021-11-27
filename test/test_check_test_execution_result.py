@@ -13,7 +13,7 @@ Breakpoint 1, UnitTest_CheckResult (isValid=1 '\\001',
     conString=0x8012080 \"test condition\", 
     errorString=0x8012044 \"Test error message\", line=2587)
     at ..\\..\\FastenHomeAut\\Src\\Common\\Helper\\UnitTest.c:66
-66	in /MyProjec/TestFile.c
+66	in /MyProject/TestFile.c
 $1 = 0 '\\000'
 $2 = 0x8011304 \"/MyProject/TestFile.c\"
 $3 = 1 '\\001'
@@ -60,7 +60,7 @@ Breakpoint 1, UnitTest_CheckResult (isValid=1 '\\001',
     conString=0x8012080 \"test condition\", 
     errorString=0x8012044 \"Test error message\", line=2587)
     at ..\\..\\FastenHomeAut\\Src\\Common\\Helper\\UnitTest.c:66
-66	in /MyProjec/TestFile.c
+66	in /MyProject/TestFile.c
 $1 = 0 '\\000'
 $2 = 0x8011304 \"/MyProject/TestFile.c\"
 $3 = 1 '\\001'
