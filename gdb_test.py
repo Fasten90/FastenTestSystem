@@ -5,10 +5,13 @@ from enum import Enum
 import os
 import argparse
 from sys import platform
+import csv
+
 
 # These threads shall be terminated
 proc_qemu = None
 proc_gdb = None
+
 
 # TODO: Add comments to dependency of TestSystem - C code
 gdb_cmd_template = \
@@ -22,9 +25,11 @@ break UnitTest_Finished
 continue
 set $successful = 0
 set $failed = 0
+set $file = "Unknown"
 while(1)
     p UnitTest_Finished_flag
     if $
+        # Finish Unittest execution
         print "Finished!"
         printf "Successful: %d, failed: %d", $successful, $failed
         #if $failed
@@ -33,6 +38,8 @@ while(1)
         detach
         quit
     else
+        p UnitTest_FileName
+        set $file = $
         p isValid
         if $
             set $successful = $successful + 1 
@@ -106,21 +113,7 @@ def restore_gdb_cmd(test_elf_path):
         file.write(gdb_cmd_content)
 
 
-def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
-    global proc_qemu
-    global proc_gdb
-
-    print('Given arguments:\n'
-          '  test_elf_path = {}\n'
-          '  qemu_path = {}'.format(
-            test_elf_path, qemu_path))
-
-    qemu_machine = 'STM32F4-Discovery'
-
-    qemu_args = '-machine {machine} -kernel {elf} -nographic -S -s'.format(
-        machine=qemu_machine,
-        elf=test_elf_path)
-
+def check_qemu_path(qemu_path):
     if platform == 'linux' or platform == 'linux2':
         # linux
         qemu_path = './{bin_path}'.format(bin_path=qemu_path)
@@ -130,8 +123,10 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     elif platform == 'win32':
         # Do nothing with the command
         pass
+    return qemu_path
 
-    qemu_command = '{} {}'.format(qemu_path, qemu_args)
+
+def check_and_prepare(test_elf_path, qemu_path):
 
     # Check the test file is exists or not
     if not os.path.exists(test_elf_path):
@@ -147,9 +142,10 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
 
     try:
         #Test: qemu-system-gnuarmeclipse.exe --version
-        qemu_test_cmd = '{bin} --version'.format(bin=qemu_path)
-        print('Test: {}'.format(qemu_test_cmd))
-        proc_qemu_test = subprocess.Popen(qemu_test_cmd,
+        qemu_test_cmd = '{bin}'.format(bin=qemu_path)
+        qemu_test_args = '--version'
+        print('Test: {} {}'.format(qemu_test_cmd, qemu_test_args))
+        proc_qemu_test = subprocess.Popen([qemu_test_cmd, qemu_test_args],
                                           shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                           stderr=subprocess.PIPE)
         stdout = proc_qemu_test.communicate()[0]
@@ -164,7 +160,7 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
 
     # gdb test
     try:
-        proc_gdb_test = subprocess.Popen('arm-none-eabi-gdb --version',
+        proc_gdb_test = subprocess.Popen(['arm-none-eabi-gdb', '--version'],
                                          shell=True, stdin=subprocess.PIPE,
                                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout = proc_gdb_test.communicate()[0]
@@ -177,8 +173,8 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
     if 'GNU gdb' not in str(stdout):
         raise Exception('GDB version response was wrong: {}'.format(stdout))
 
-    # Start Normal phase
 
+def execute_qemu_test(qemu_command, test_elf_path):
     # Execute QEMU
     # E.g. qemu-system-gnuarmeclipse.exe -machine STM32F4-Discovery -kernel FastenNodeF4Discovery.elf -nographic -S -s
     print('Execute: "{}"'.format(qemu_command))
@@ -241,78 +237,131 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse'):
                 proc_qemu.kill()
     print('QEMU result code: "{}"'.format(proc_qemu.returncode))
 
-    # TODO: Save to a log file
-    # TODO: Move to another file/class the parsing test execution data
+    # Save to a log file
+    with open('QEMU_GDB_execution.log', 'wt', newline='') as f:
+        f.write(gdb_proc_result)
+
+    return gdb_proc_result
+
+
+def check_test_execution_result(gdb_proc_result, debug=False):
+
     # Check GDB result
     print('Collect GDB test results')
     # Example content: $1 = 34\r\n', b'$2 = 0\
     value_result_list = []
     # Note: The collector regex expression contains System Unit-test dependency (e.g. UnitTest assert arguments)
-    # https://regex101.com/r/Abm3Zm/3
-    regex_pattern = re.compile(r'Breakpoint \d, .*[\r\n]+ *conString\=0x[\d\w]+ \"(.*)[\r\n]* *errorString\=0x[\d\w]+ \".*[\r\n]* *line\=(\d+)\)[\r\n]* *at .*[\r\n]+\d+.*[\r\n]+.*[\r\n]+.*[\r\n]+\$\d+ \= \"(.*)\"', re.MULTILINE)
-    regex_result = re.findall(regex_pattern, gdb_proc_result)
-    for re_found in regex_result:
-        # Result is tuple, e.g. (1, 34)
-        assert_msg = re_found[0]  # TODO: Split end '",'
-        assert_line = re_found[1]
-        assert_result = re_found[2]
-        value_result_list.append((assert_msg, assert_line, assert_result))
-        #print('Val: {} = {}'.format(val_id, val_value))
+    # https://regex101.com/r/Abm3Zm/8
+    regex_pattern = re.compile(r'Breakpoint \d, .* \(isValid\=\d .*\, [\r\n]+ *conString\=0x[a-f0-9]+ \"(?P<assert_string>.*)\"\.*\, [\r\n]* *errorString\=0x[a-f0-9]+ \"(?P<error_string>.*)\"\, [\r\n]* *line\=(?P<line>\d+)\)[\r\n]* *at .*[\r\n]+(\d+.*[\r\n]+)?\$\d+.*[\r\n]+\$\d+ \= 0x[a-f0-9]+ \"(?P<file_path>.*)\"[\r\n]+\$\d+.*[\r\n]+\$\d+ \= \"(?P<assert_result>.*)\"', re.MULTILINE)
 
-    test_assert_regex_found = len(regex_result)
-    print('Found Test assert results: {}'.format(test_assert_regex_found))
+    for re_found in regex_pattern.finditer(gdb_proc_result):
+        if debug:
+            print(m.groupdict())
+        re_found_dict = re_found.groupdict()
+        unit_test_dict = {
+            'assert_string': re_found_dict['assert_string'],
+            'line': re_found_dict['line'],
+            'assert_result': re_found_dict['assert_result'],
+            'error_string': re_found_dict['error_string'],
+            'file_path': re_found_dict['file_path'].replace('\\', '/').split('/')[-1],
+        }
+        value_result_list.append(unit_test_dict)
+
+    found_test_assert_regex_count = len(value_result_list)
+    if not found_test_assert_regex_count:
+        raise Exception('There is no executed UnitTest assert.\n'
+                        '  Please check the utils\\UnitTest.c.\n'
+                        '  Check the GDB connection\n'
+                        '  Is there unittest assert which called?')
+    print('Test assert result count: {}'.format(found_test_assert_regex_count))
 
     # Cross-check:
     # Note: GDB command dependency
     # E.g. "Successful: 573, failed: 0"
     summary_result = re.search(r'Successful: (\d+), failed: (\d+)', gdb_proc_result)
+    if not summary_result:
+        # It is empty, report the issue for the User
+        raise Exception(r"UnitTest result has not catch. Please check the 'utils\UnitTest.c' - UnitTest_End method. It is called correctly?\n"
+                        r"  Expected message in the UnitTest / UART: 'UnitTest run successfully'\n"
+                        r"  Expected message in the GDB: 'Successful: 1, failed: 0'")
     res_all_successful = int(summary_result[1])
     res_all_failed = int(summary_result[2])
     res_all_count = res_all_successful + res_all_failed
 
+    # TODO: Print at end + Exit code
     print('Found test_assert: {}, GDB counts: {} : It is: {}'.format(
-        test_assert_regex_found,
+        found_test_assert_regex_count,
         res_all_count,
-        'OK' if test_assert_regex_found == res_all_count else 'Wrong'
+        'OK' if found_test_assert_regex_count == res_all_count else 'Wrong'
     ))
 
-    if True:
-        for item in regex_result:
-            print('{} {} {}'.format(str(item[0]).strip(), item[1], item[2]))
+    summary_result_info = {
+        'All successful tests': res_all_successful,
+        'All failed tests': res_all_failed,
+        'All tests count': res_all_count
+    }
+
+    if debug:
+        for item in value_result_list:
+            print(''.join([' ' + dictionary_elem for dictionary_elem in item.items()]))
+
+    return value_result_list, summary_result_info
+
+
+def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse', qemu_machine = 'STM32F4-Discovery', debug=False):
+    global proc_qemu
+    global proc_gdb
+
+    print('Given arguments:\n'
+          '  test_elf_path = {}\n'
+          '  qemu_path = {}'.format(
+            test_elf_path, qemu_path))
+
+    qemu_args = '-machine {machine} -kernel {elf} -nographic -S -s'.format(
+        machine=qemu_machine,
+        elf=test_elf_path)
+
+    qemu_path = check_qemu_path(qemu_path)
+
+    qemu_command = '{} {}'.format(qemu_path, qemu_args)
+
+    check_and_prepare(test_elf_path, qemu_path)
+
+    # Test
+    gdb_proc_result = execute_qemu_test(qemu_command, test_elf_path)
+
+    # Check
+    value_result_list, summary_result_info = check_test_execution_result(gdb_proc_result, debug)
 
     # Finish / Clean
     restore_gdb_cmd(test_elf_path)
 
-    return value_result_list
+    return value_result_list, summary_result_info
 
 
+def export_to_csv(export_filename, result_list):
+    # Create CSV
+    with open(export_filename, mode='w', newline='', encoding='utf-8') as csv_file:
+        fieldnames = ['file_path', 'line', 'assert_string', 'assert_result', 'error_string']
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in result_list:
+            writer.writerow(row)
+        print('Exported to {}'.format(export_filename))
+
+
+# TODO: Update: FileName, LineNumber
 def check_results(value_result_list):
-    expected_results = [
-        (1, 10, 'Successful', TestResultType.Min),
-        (2, 0,  'Failed',     TestResultType.Equal)]
 
     for index, result_item in enumerate(value_result_list):
-        # Id
-        assert int(result_item[0]) == expected_results[index][0]
+        assert 'Valid' in result_item['assert_result']
 
-        # TODO: Generalize
-
-        expected_val = expected_results[index][1]
-        test_name = expected_results[index][2]
-        test_res_type = expected_results[index][3]
-        test_return_val = int(result_item[1])
-        if test_res_type == TestResultType.Equal:
-            assert test_return_val == expected_val
-        elif test_res_type == TestResultType.Min:
-            assert test_return_val >= expected_val
-        elif test_res_type == TestResultType.Max:
-            assert test_return_val <= expected_val
-        elif test_res_type == TestResultType.DontCare:
-            pass
-        else:
-            raise Exception('Unhandled TestResultType')
-        print('Result of "{}" test was okay. Expected: {}, test result: {}, condition type: {}'.format(
-            test_name, expected_val, test_return_val, str(test_res_type)))
+        print('{:30s}: {:4s}  {:80s} {:25s} {}'.format(
+            result_item['file_path'],
+            result_item['line'],
+            result_item['assert_string'],
+            result_item['assert_result'],
+            result_item['error_string']))
 
 
 def main():
@@ -322,12 +371,23 @@ def main():
     parser.add_argument('--qemu_bin_path', required=False,
                         default='qemu-system-gnuarmeclipse',
                         help='path for QEMU')
+    parser.add_argument('--qemu_machine', required=False,
+                        default='STM32F4-Discovery',
+                        help='QEMU target machine name: e.g. STM32F4-Discovery')
+    parser.add_argument('--export-csv', required=False,
+                        default='TestResults.csv',
+                        help='path for exported CSV')
+    parser.add_argument('--verbose', required=False,
+                        default=False, action='store_true',
+                        help='path for exported CSV')
     args = parser.parse_args()
 
     # 1. Phase: Test execution
     try:
-        value_result_list = start_qemu_test(test_elf_path=args.test_file_path,
-                                            qemu_path=args.qemu_bin_path)
+        value_result_list, summary_result_info = start_qemu_test(test_elf_path=args.test_file_path,
+                                            qemu_path=args.qemu_bin_path,
+                                            qemu_machine=args.qemu_machine,
+                                            debug=args.verbose)
     except Exception as ex:
         global proc_qemu
         global proc_gdb
@@ -338,7 +398,10 @@ def main():
             proc_gdb.terminate()
         raise ex
     # 2. Phase: Test result check
-    #check_results(value_result_list)
+    check_results(value_result_list)
+    # 3. Phase: Export
+    export_to_csv(args.export_csv, value_result_list)
+    # TODO: Do something with summary_result_info
 
 
 if __name__ == '__main__':

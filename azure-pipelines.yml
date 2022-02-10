@@ -1,0 +1,69 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- script: |
+
+    # ARM-none-eabi-gcc
+    # Note: Similar installation as ARM none eabi gcc build
+    sudo apt-get update -y
+    sudo apt-get install -y gcc-arm-none-eabi
+    sudo apt-get install -y gdb-multiarch
+    sudo ln -s /usr/bin/gdb-multiarch /usr/bin/arm-none-eabi-gdb
+
+    arm-none-eabi-gcc --version
+    arm-none-eabi-gdb --version
+
+    # Python
+    python --version
+    pytho3 --version
+
+    # QEMU
+    # Install with manual
+    # https://xpack.github.io/qemu-arm/install/
+    # downloaded file
+    qemu_version="2.8.0-9"
+    qemu_path_first_part="xpack-qemu-arm-${qemu_version}"
+    qemu_install_file="${qemu_path_first_part}-linux-x64.tar.gz"
+    # https://github.com/xpack-dev-tools/qemu-arm-xpack/releases/download/v2.8.0-9/xpack-qemu-arm-2.8.0-9-linux-x64.tar.gz
+    download_full_path="https://github.com/xpack-dev-tools/qemu-arm-xpack/releases/download/v${qemu_version}/${qemu_install_file}"
+    echo "Download: ${download_full_path}"
+    wget $download_full_path
+
+    mkdir -p opt
+    cd opt
+
+    # E.g. tar xvf ~/Downloads/xpack-qemu-arm-2.8.0-7-linux-x64.tgz
+    echo "Unzip: ${qemu_install_file}"
+    tar xvf ../$qemu_install_file
+    # E.g. chmod -R -w xPacks/qemu-arm/2.8.0-7
+    #chmod -R -w $qemu_path_first_part
+    chmod -R 777 $qemu_path_first_part
+    qemu_bin_path="${qemu_path_first_part}/bin/qemu-system-gnuarmeclipse"
+    # Execute the version
+    echo "Execute: ${qemu_bin_path}"
+    ./$qemu_bin_path --version
+    pwd  # Debug
+
+    # FastenTestSystem
+    cd ..
+    echo "Clone FastenTestSystem"
+    git clone https://github.com/Fasten90/FastenTestSystem.git
+    cd FastenTestSystem
+    git checkout task_improvements
+    # Execute
+    echo "Executing..."
+    pwd  # Debug
+    relative_qemu_bin_path="../opt/${qemu_bin_path}"
+    echo "qemu_bin_path: ${relative_qemu_bin_path}"
+    export QEMU_BIN_PATH="${relative_qemu_bin_path}"
+
+    python -m unittest discover
+  displayName: 'UnitTest'
+
