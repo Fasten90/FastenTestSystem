@@ -323,7 +323,7 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse', qemu_m
 
     qemu_path = check_qemu_path(qemu_path)
 
-    qemu_command = '{} {}'.format(qemu_path, qemu_args)
+    qemu_command = [qemu_path, qemu_args]
 
     check_and_prepare(test_elf_path, qemu_path)
 
