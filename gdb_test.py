@@ -142,9 +142,10 @@ def check_and_prepare(test_elf_path, qemu_path):
 
     try:
         #Test: qemu-system-gnuarmeclipse.exe --version
-        qemu_test_cmd = '{bin} --version'.format(bin=qemu_path)
-        print('Test: {}'.format(qemu_test_cmd))
-        proc_qemu_test = subprocess.Popen(qemu_test_cmd,
+        qemu_test_cmd = '{bin}'.format(bin=qemu_path)
+        qemu_test_args = '--version'
+        print('Test: {} {}'.format(qemu_test_cmd, qemu_test_args))
+        proc_qemu_test = subprocess.Popen([qemu_test_cmd, qemu_test_args],
                                           shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                           stderr=subprocess.PIPE)
         stdout = proc_qemu_test.communicate()[0]
@@ -159,7 +160,7 @@ def check_and_prepare(test_elf_path, qemu_path):
 
     # gdb test
     try:
-        proc_gdb_test = subprocess.Popen('arm-none-eabi-gdb --version',
+        proc_gdb_test = subprocess.Popen(['arm-none-eabi-gdb', '--version'],
                                          shell=True, stdin=subprocess.PIPE,
                                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout = proc_gdb_test.communicate()[0]
