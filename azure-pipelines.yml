@@ -22,7 +22,7 @@ steps:
 
     # Python
     python --version
-    pytho3 --version
+    python3 --version
 
     # QEMU
     # Install with manual
