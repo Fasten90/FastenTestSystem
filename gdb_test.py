@@ -142,9 +142,9 @@ def check_and_prepare(test_elf_path, qemu_path):
 
     try:
         # Test: qemu-system-gnuarmeclipse.exe --version
-        #qemu_test_args = '--version'
-        print('Test: {}'.format(qemu_path))
-        proc_qemu_test = subprocess.run([qemu_path],
+        qemu_test_args = '--version'
+        print('Test: {} {}'.format(qemu_path, qemu_test_args))
+        proc_qemu_test = subprocess.run([qemu_path, qemu_test_args],
                                           shell=True,
                                           capture_output=True)
     except Exception as ex:
