@@ -51,19 +51,7 @@ steps:
     ./$qemu_bin_path --version
     pwd  # Debug
 
-    # FastenTestSystem
-    cd ..
-    echo "Clone FastenTestSystem"
-    git clone https://github.com/Fasten90/FastenTestSystem.git
-    cd FastenTestSystem
-    git checkout task_improvements
-    # Execute
-    echo "Executing..."
-    pwd  # Debug
-    relative_qemu_bin_path="../opt/${qemu_bin_path}"
-    echo "qemu_bin_path: ${relative_qemu_bin_path}"
-    export QEMU_BIN_PATH="${relative_qemu_bin_path}"
-
+    # Unittest
     python -m unittest discover
   displayName: 'UnitTest'
 
