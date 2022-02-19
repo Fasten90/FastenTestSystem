@@ -53,10 +53,8 @@ steps:
 
     # Unittest
     python -m unittest discover
+    
+    # SystemTest
+    python3 -u gdb_test.py --test_file_path test/reference/FastenHomeAut --qemu_bin_path $relative_qemu_bin_path
   displayName: 'UnitTest'
 
-- script: |
-
-    python3 -u gdb_test.py --test_file_path ../../Build_GCC_ARM_Bin_Artifact/FastenHomeAut --qemu_bin_path $relative_qemu_bin_path
-    
-  displayName: 'SystemTest'
