@@ -54,6 +54,8 @@ steps:
     cd ..
 
     # Unittest
+    # QEMU path is required for test
+    export QEMU_BIN_PATH="opt/${qemu_bin_path}"
     python3 -m unittest discover
 
     # SystemTest
