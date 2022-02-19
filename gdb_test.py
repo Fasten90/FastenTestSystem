@@ -130,23 +130,23 @@ def check_and_prepare(test_elf_path, qemu_path):
 
     # Check the test file is exists or not
     if not os.path.exists(test_elf_path):
-        raise Exception('Test file is not exists: {}'.format(test_elf_path))
+        raise Exception('Test file is not existing: {}'.format(test_elf_path))
     else:
         print('Test file seems exists')
 
     # Check
     if not os.path.exists(qemu_path):
-        log_warning('QEMU does not exists as path: {}. It is possible if it is on the PATH'.format(qemu_path))
+        log_warning('QEMU does not exist as path: {}. It is possible if it is on the PATH'.format(qemu_path))
     else:
-        print('QEMU executable file seems exists')
+        print('QEMU executable file seems as existing')
 
     try:
-        #Test: qemu-system-gnuarmeclipse.exe --version
-        qemu_test_cmd = '{bin}'.format(bin=qemu_path)
+        # Test: qemu-system-gnuarmeclipse.exe --version
         qemu_test_args = '--version'
-        print('Test: {} {}'.format(qemu_test_cmd, qemu_test_args))
-        proc_qemu_test = subprocess.Popen([qemu_test_cmd, qemu_test_args],
-                                          shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        print('Test: {} {}'.format(qemu_path, qemu_test_args))
+        proc_qemu_test = subprocess.Popen([qemu_path, qemu_test_args],
+                                          shell=True,
+                                          stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                           stderr=subprocess.PIPE)
         stdout = proc_qemu_test.communicate()[0]
     except Exception as ex:
