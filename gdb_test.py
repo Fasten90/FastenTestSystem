@@ -142,9 +142,9 @@ def check_and_prepare(test_elf_path, qemu_path):
 
     try:
         # Test: qemu-system-gnuarmeclipse.exe --version
-        qemu_test_args = '--version'
-        print('Test: {} {}'.format(qemu_path, qemu_test_args))
-        proc_qemu_test = subprocess.run([qemu_path, qemu_test_args],
+        #qemu_test_args = '--version'
+        print('Test: {}'.format(qemu_path))
+        proc_qemu_test = subprocess.run([qemu_path],
                                           shell=True,
                                           capture_output=True)
     except Exception as ex:
@@ -153,7 +153,8 @@ def check_and_prepare(test_elf_path, qemu_path):
 
     print('Result of QEMU test: {}'.format(proc_qemu_test))
 
-    if 'QEMU emulator version' not in str(proc_qemu_test):
+    # 'QEMU emulator version' message is not available from new version
+    if 'Neither board nor mcu specified, and there is no default.' not in str(proc_qemu_test):
         raise Exception('QEMU version response was wrong!')
 
     # gdb test
