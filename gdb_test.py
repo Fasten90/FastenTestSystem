@@ -132,7 +132,7 @@ def check_and_prepare(test_elf_path, qemu_path):
     if not os.path.exists(test_elf_path):
         raise Exception('Test file is not existing: {}'.format(test_elf_path))
     else:
-        print('Test file seems exists')
+        print('Test file seems as existing')
 
     # Check
     if not os.path.exists(qemu_path):
