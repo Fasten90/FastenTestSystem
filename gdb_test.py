@@ -144,18 +144,16 @@ def check_and_prepare(test_elf_path, qemu_path):
         # Test: qemu-system-gnuarmeclipse.exe --version
         qemu_test_args = '--verbose'
         print('Test: {} {}'.format(qemu_path, qemu_test_args))
-        proc_qemu_test = subprocess.Popen([qemu_path, qemu_test_args],
+        proc_qemu_test = subprocess.run([qemu_path, qemu_test_args],
                                           shell=True,
-                                          stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                          stderr=subprocess.PIPE)
-        stdout = proc_qemu_test.communicate()[0]
+                                          capture_output=True)
     except Exception as ex:
         log_error('QEMU test has failed!')
         raise ex
 
-    print('Result of QEMU test: {}'.format(stdout))
+    print('Result of QEMU test: {}'.format(proc_qemu_test))
 
-    if 'QEMU emulator version' not in str(stdout):
+    if 'QEMU emulator version' not in str(proc_qemu_test):
         raise Exception('QEMU version response was wrong!')
 
     # gdb test
