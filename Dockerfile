@@ -11,7 +11,12 @@ RUN apt install build-essential
 
 
 RUN apt-get install -y gcc-arm-none-eabi
+# TZ is required for gdb-multiarch
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Budapest
+RUN apt-get install -y tzdata
 RUN apt-get install -y gdb-multiarch
+
 RUN ln -s /usr/bin/gdb-multiarch /usr/bin/arm-none-eabi-gdb
 
 
@@ -29,11 +34,11 @@ RUN gcc --version
 # Install with manual
 # https://xpack.github.io/qemu-arm/install/
 # downloaded file
-RUN qemu_version="2.8.0-9"
-RUN qemu_path_first_part="xpack-qemu-arm-${qemu_version}"
-RUN qemu_install_file="${qemu_path_first_part}-linux-x64.tar.gz"
+ENV qemu_version="2.8.0-9"
+ENV qemu_path_first_part="xpack-qemu-arm-${qemu_version}"
+ENV qemu_install_file="${qemu_path_first_part}-linux-x64.tar.gz"
 # https://github.com/xpack-dev-tools/qemu-arm-xpack/releases/download/v2.8.0-9/xpack-qemu-arm-2.8.0-9-linux-x64.tar.gz
-RUN download_full_path="https://github.com/xpack-dev-tools/qemu-arm-xpack/releases/download/v${qemu_version}/${qemu_install_file}"
+ENV download_full_path="https://github.com/xpack-dev-tools/qemu-arm-xpack/releases/download/v${qemu_version}/${qemu_install_file}"
 RUN echo "Download: ${download_full_path}"
 RUN wget $download_full_path
 
@@ -46,10 +51,12 @@ RUN tar xvf ../$qemu_install_file
 # E.g. chmod -R -w xPacks/qemu-arm/2.8.0-7
 #chmod -R -w $qemu_path_first_part
 RUN chmod -R 777 $qemu_path_first_part
-RUN qemu_bin_path="${qemu_path_first_part}/bin/qemu-system-gnuarmeclipse"
+ENV qemu_bin_path="${qemu_path_first_part}/bin/qemu-system-gnuarmeclipse"
 # Execute the version
 RUN echo "Execute: ${qemu_bin_path}"
-RUN ./$qemu_bin_path --version
+RUN chmod +x $qemu_bin_path
+RUN $qemu_bin_path --version
+
 RUN pwd  # Debug
 
 RUN cd ..
@@ -58,7 +65,7 @@ RUN cd ..
 
 # Unittest
 # QEMU path is required for test
-RUN export QEMU_BIN_PATH="opt/${qemu_bin_path}"
+ENV QEMU_BIN_PATH="opt/${qemu_bin_path}"
 
 
 ##python3 -m unittest discover

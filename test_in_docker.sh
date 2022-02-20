@@ -4,6 +4,9 @@ git clone https://github.com/Fasten90/FastenTestSystem.git
 
 cd FastenTestSystem
 
+# TODO: Reset it to develop
+git checkout test_debug_test_command_failing
+
 python3 -m pip install update
 python3 -m pip install -r requirements.txt
 
