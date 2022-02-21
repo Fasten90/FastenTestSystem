@@ -130,15 +130,15 @@ def check_and_prepare(test_elf_path, qemu_path):
 
     # Check the test file is exists or not
     if not os.path.exists(test_elf_path):
-        raise Exception('Test file is not exists: {}'.format(test_elf_path))
+        raise Exception('Test file is not existing: {}'.format(test_elf_path))
     else:
-        print('Test file seems exists')
+        print('Test file seems as existing')
 
     # Check
     if not os.path.exists(qemu_path):
-        log_warning('QEMU does not exists as path: {}. It is possible if it is on the PATH'.format(qemu_path))
+        log_warning('QEMU does not exist as path: {}. It is possible if it is on the PATH'.format(qemu_path))
     else:
-        print('QEMU executable file seems exists')
+        print('QEMU executable file seems as existing')
 
     try:
         #Test: qemu-system-gnuarmeclipse.exe --version
@@ -197,24 +197,36 @@ def execute_qemu_test(qemu_command, test_elf_path):
 
     # GDB
     print('Start GDB')
-    proc_gdb = subprocess.Popen('arm-none-eabi-gdb -x gdb_cmd', shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if False:
+        proc_gdb = subprocess.Popen('arm-none-eabi-gdb -x gdb_cmd', shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    else:
+        proc_gdb = subprocess.run(['arm-none-eabi-gdb', '-x', 'gdb_cmd'], shell=True, stdout=True)
 
     # stdout = proc.communicate()[0]
     #print(stdout)
     print('GDB execution result: ')
-    gdb_proc_result = ""
-    while True:
-        line = proc_gdb.stdout.readline()
-        if line:
-            try:
-                line = line.decode('ISO-8859-1')
-            except UnicodeDecodeError as ex:
-                log_error('Exception: {}'.format(str(ex)))
-                line = str(line)
-            gdb_proc_result += line
-            print(line.strip())
-        else:
-            break
+    if False:
+        gdb_proc_result = ""
+        while True:
+            line = proc_gdb.stdout.readline()
+            if line:
+                try:
+                    line = line.decode('ISO-8859-1')
+                except UnicodeDecodeError as ex:
+                    log_error('Exception: {}'.format(str(ex)))
+                    line = str(line)
+                gdb_proc_result += line
+                print(line.strip())
+            else:
+                break
+    else:
+        gdb_proc_result = proc_gdb.stdout.decode()
+        gdb_proc_err = proc_gdb.stderr.decode()
+        print('Result: ')
+        print(gdb_proc_result)
+        print('Err: ')
+        print(gdb_proc_err)
+        # TODO: Check what if the exception raised
 
     #print('GDB process result: {}'.format(gdb_proc_result))
     #gdb_proc_result = ''.join(item.decode() + ' ' for item in gdb_proc_result)
@@ -316,13 +328,15 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse', qemu_m
           '  qemu_path = {}'.format(
             test_elf_path, qemu_path))
 
-    qemu_args = '-machine {machine} -kernel {elf} -nographic -S -s'.format(
-        machine=qemu_machine,
-        elf=test_elf_path)
+    # -S "freeze CPU at startup (use 'c' to start execution"
+    # -s "shorthand for -gdb tcp::1234"
+    qemu_args = ['-machine', '{machine}'.format(machine=qemu_machine),
+                 '-kernel', '{elf}'.format(elf=test_elf_path),
+                 '-nographic', '-S', '-s']
 
     qemu_path = check_qemu_path(qemu_path)
 
-    qemu_command = '{} {}'.format(qemu_path, qemu_args)
+    qemu_command = [qemu_path] + qemu_args
 
     check_and_prepare(test_elf_path, qemu_path)
 
