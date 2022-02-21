@@ -49,7 +49,8 @@ class TestReference(unittest.TestCase):
         #        print(line, end='')  # process line here
         print('In the ideal world we execute this: {}'.format(exec_command))
         
-        test_execution = subprocess.run(exec_command, capture_output=True) # 'shell=True' maybe not necessary
+        exec_command_str = ''.join([' ' + item for item in exec_command]
+        test_execution = subprocess.run(exec_command_str, capture_output=True) # 'shell=True' maybe not necessary
         # Removed 'stdout=True, ' due 'ValueError: stdout and stderr arguments may not be used with capture_output.' error
         
         print('Execution result: {}'.format(test_execution))
