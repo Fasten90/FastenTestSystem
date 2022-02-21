@@ -316,15 +316,13 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse', qemu_m
           '  qemu_path = {}'.format(
             test_elf_path, qemu_path))
 
-    # -S "freeze CPU at startup (use 'c' to start execution"
-    # -s "shorthand for -gdb tcp::1234"
-    qemu_args = ['-machine', '{machine}'.format(machine=qemu_machine),
-                 '-kernel', '{elf}'.format(elf=test_elf_path),
-                 '-nographic', '-S', '-s']
+    qemu_args = '-machine {machine} -kernel {elf} -nographic -S -s'.format(
+        machine=qemu_machine,
+        elf=test_elf_path)
 
     qemu_path = check_qemu_path(qemu_path)
 
-    qemu_command = [qemu_path] + qemu_args
+    qemu_command = '{} {}'.format(qemu_path, qemu_args)
 
     check_and_prepare(test_elf_path, qemu_path)
 
