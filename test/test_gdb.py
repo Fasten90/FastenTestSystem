@@ -32,15 +32,20 @@ class TestReference(unittest.TestCase):
         #    for line in p.stdout:
         #        print(line, end='')  # process line here
         print('In the ideal world we execute this: {}'.format(exec_command))
-        
+
         #exec_command_str = ''.join([' ' + item for item in exec_command])
         test_execution = subprocess.run(exec_command, capture_output=True) # 'shell=True' maybe not necessary
         # Removed 'stdout=True, ' due 'ValueError: stdout and stderr arguments may not be used with capture_output.' error
-        
-        print('Execution result: {}'.format(test_execution))
-        print(test_execution.stdout)
-        print(test_execution.stderr)
-        
+
+        # Debug
+        #print('Execution result: {}'.format(test_execution))
+
+        print('stdout:')
+        for line in test_execution.stdout.encode.split('\n'):
+            print(line)
+
+        print('stderr: {}'.format(test_execution.stderr))
+
         test_execution.check_returncode()
 
         print('In the ideal world that is executed: {}'.format(exec_command))
