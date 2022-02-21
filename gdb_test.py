@@ -130,15 +130,15 @@ def check_and_prepare(test_elf_path, qemu_path):
 
     # Check the test file is exists or not
     if not os.path.exists(test_elf_path):
-        raise Exception('Test file is not exists: {}'.format(test_elf_path))
+        raise Exception('Test file is not existing: {}'.format(test_elf_path))
     else:
-        print('Test file seems exists')
+        print('Test file seems as existing')
 
     # Check
     if not os.path.exists(qemu_path):
-        log_warning('QEMU does not exists as path: {}. It is possible if it is on the PATH'.format(qemu_path))
+        log_warning('QEMU does not exist as path: {}. It is possible if it is on the PATH'.format(qemu_path))
     else:
-        print('QEMU executable file seems exists')
+        print('QEMU executable file seems as existing')
 
     try:
         #Test: qemu-system-gnuarmeclipse.exe --version
