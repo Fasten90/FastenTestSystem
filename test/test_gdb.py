@@ -1,6 +1,8 @@
 import unittest
 import os
 
+import subprocess
+
 from sys import platform
 
 import gdb_test
@@ -40,10 +42,11 @@ class TestReference(unittest.TestCase):
         #p = subprocess.Popen(exec_command, shell=True, stdout=subprocess.PIPE)
         #out, err = p.communicate()
 
-        from subprocess import Popen, PIPE, CalledProcessError
-        with Popen(exec_command, stdout=PIPE, bufsize=1, universal_newlines=True, shell=True) as p:
-            for line in p.stdout:
-                print(line, end='')  # process line here
+        #from subprocess import Popen, PIPE, CalledProcessError
+        #with Popen(exec_command, stdout=PIPE, bufsize=1, universal_newlines=True, shell=True) as p:
+        #    for line in p.stdout:
+        #        print(line, end='')  # process line here
+        p = subprocess.run(exec_command, stdout=True, shell=True)
 
         if p.returncode != 0:
             raise CalledProcessError(p.returncode, p.args)
