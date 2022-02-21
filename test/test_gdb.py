@@ -41,7 +41,7 @@ class TestReference(unittest.TestCase):
         #print('Execution result: {}'.format(test_execution))
 
         print('stdout:')
-        for line in test_execution.stdout.encode.split('\n'):
+        for line in test_execution.stdout.decode().split('\n'):
             print(line)
 
         print('stderr: {}'.format(test_execution.stderr))
