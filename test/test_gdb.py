@@ -1,7 +1,23 @@
 import unittest
 import os
 
+from sys import platform
+
 import gdb_test
+
+
+def get_python_by_platform():
+    python_bin = 'python'
+    if platform == 'linux' or platform == 'linux2':
+        # linux
+        python_bin = 'python3'
+    elif platform == 'darwin':
+        # OS X
+        python_bin = 'python3'
+    elif platform == 'win32':
+        # Do nothing with the command
+        python_bin = 'python'
+    return python_bin
 
 
 class TestReference(unittest.TestCase):
@@ -16,10 +32,11 @@ class TestReference(unittest.TestCase):
         is_pipeline = os.getenv('PIPELINE_WORKSPACE')
         if is_pipeline:
             QEMU_BIN_PATH = os.getenv('QEMU_BIN_PATH')
-            args += ' ' + '--qemu_bin_path="../opt/{qemu_bin_path}"'.format(qemu_bin_path=QEMU_BIN_PATH)
+            args += ' ' + '--qemu_bin_path="{qemu_bin_path}"'.format(qemu_bin_path=QEMU_BIN_PATH)
 
+        python = get_python_by_platform()
         #subprocess.run(['python', python_file + ' ' + args])
-        exec_command = 'python' + ' ' + '-u' + ' ' + python_file + ' ' + args
+        exec_command = [python, '-u', python_file, args]
         #p = subprocess.Popen(exec_command, shell=True, stdout=subprocess.PIPE)
         #out, err = p.communicate()
 
