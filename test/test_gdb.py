@@ -1,5 +1,6 @@
 import unittest
 import os
+import sys
 
 import subprocess
 
@@ -38,7 +39,7 @@ class TestReference(unittest.TestCase):
 
         python = get_python_by_platform()
         #subprocess.run(['python', python_file + ' ' + args])
-        exec_command = [python, python_file, args]
+        exec_command = [sys.executable, python_file, args]
         #p = subprocess.Popen(exec_command, shell=True, stdout=subprocess.PIPE)
         #out, err = p.communicate()
 
@@ -48,10 +49,14 @@ class TestReference(unittest.TestCase):
         #        print(line, end='')  # process line here
         print('In the ideal world we execute this: {}'.format(exec_command))
         
-        test_execution = subprocess.run(exec_command, stdout=True) # 'shell=True' maybe not necessary
+        test_execution = subprocess.run(exec_command, stdout=True, capture_output=True) # 'shell=True' maybe not necessary
         
         print('Execution result: {}'.format(test_execution))
+        print(test_execution.stdout)
+        print(test_execution.stderr)
         
+        test_execution.check_returncode()
+
         print('In the ideal world that is executed: {}'.format(exec_command))
 
 
