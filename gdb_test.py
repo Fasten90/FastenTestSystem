@@ -200,7 +200,7 @@ def execute_qemu_test(qemu_command, test_elf_path):
     if False:
         proc_gdb = subprocess.Popen('arm-none-eabi-gdb -x gdb_cmd', shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     else:
-        proc_gdb = subprocess.run(['arm-none-eabi-gdb', '-x gdb_cmd'], shell=True, stdout=True)
+        proc_gdb = subprocess.run(['arm-none-eabi-gdb', '-x', 'gdb_cmd'], shell=True, stdout=True)
 
     # stdout = proc.communicate()[0]
     #print(stdout)
@@ -330,13 +330,11 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse', qemu_m
 
     # -S "freeze CPU at startup (use 'c' to start execution"
     # -s "shorthand for -gdb tcp::1234"
-    qemu_args = '-machine {machine} -image {elf} -nographic -S -s'.format(
-        machine=qemu_machine,
-        elf=test_elf_path)
+    qemu_args = ['-machine', '{machine}'.format(qemu_machine), '-image', '{elf}'.format(test_elf_path), '-nographic', '-S', '-s']
 
     qemu_path = check_qemu_path(qemu_path)
 
-    qemu_command = [qemu_path, qemu_args]
+    qemu_command = [qemu_path] + qemu_args
 
     check_and_prepare(test_elf_path, qemu_path)
 
