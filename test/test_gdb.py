@@ -34,11 +34,11 @@ class TestReference(unittest.TestCase):
         is_pipeline = os.getenv('PIPELINE_WORKSPACE')
         if is_pipeline:
             QEMU_BIN_PATH = os.getenv('QEMU_BIN_PATH')
-            args += ' ' + '--qemu_bin_path="{qemu_bin_path}"'.format(qemu_bin_path=QEMU_BIN_PATH)
+            args += ' ' + '--qemu_bin_path={qemu_bin_path}'.format(qemu_bin_path=QEMU_BIN_PATH)
 
         python = get_python_by_platform()
         #subprocess.run(['python', python_file + ' ' + args])
-        exec_command = [python, '-u', python_file, args]
+        exec_command = [python, python_file, args]
         #p = subprocess.Popen(exec_command, shell=True, stdout=subprocess.PIPE)
         #out, err = p.communicate()
 
@@ -47,6 +47,12 @@ class TestReference(unittest.TestCase):
         #    for line in p.stdout:
         #        print(line, end='')  # process line here
         print('In the ideal world we execute this: {}'.format(exec_command))
+        
+        test_execution = subprocess.run(exec_command, stdout=True) # 'shell=True' maybe not necessary
+        
+        print('Execution result: {}'.format(test_execution))
+        
+        print('In the ideal world that is executed: {}'.format(exec_command))
 
 
 if __name__ == '__main__':
