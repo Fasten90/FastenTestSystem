@@ -197,36 +197,24 @@ def execute_qemu_test(qemu_command, test_elf_path):
 
     # GDB
     print('Start GDB')
-    if False:
-        proc_gdb = subprocess.Popen('arm-none-eabi-gdb -x gdb_cmd', shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    else:
-        proc_gdb = subprocess.run(['arm-none-eabi-gdb', '-x', 'gdb_cmd'], shell=True, stdout=True)
+    proc_gdb = subprocess.Popen('arm-none-eabi-gdb -x gdb_cmd', shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # stdout = proc.communicate()[0]
     #print(stdout)
     print('GDB execution result: ')
-    if False:
-        gdb_proc_result = ""
-        while True:
-            line = proc_gdb.stdout.readline()
-            if line:
-                try:
-                    line = line.decode('ISO-8859-1')
-                except UnicodeDecodeError as ex:
-                    log_error('Exception: {}'.format(str(ex)))
-                    line = str(line)
-                gdb_proc_result += line
-                print(line.strip())
-            else:
-                break
-    else:
-        gdb_proc_result = proc_gdb.stdout.decode()
-        gdb_proc_err = proc_gdb.stderr.decode()
-        print('Result: ')
-        print(gdb_proc_result)
-        print('Err: ')
-        print(gdb_proc_err)
-        # TODO: Check what if the exception raised
+    gdb_proc_result = ""
+    while True:
+        line = proc_gdb.stdout.readline()
+        if line:
+            try:
+                line = line.decode('ISO-8859-1')
+            except UnicodeDecodeError as ex:
+                log_error('Exception: {}'.format(str(ex)))
+                line = str(line)
+            gdb_proc_result += line
+            print(line.strip())
+        else:
+            break
 
     #print('GDB process result: {}'.format(gdb_proc_result))
     #gdb_proc_result = ''.join(item.decode() + ' ' for item in gdb_proc_result)
