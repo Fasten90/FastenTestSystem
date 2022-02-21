@@ -36,8 +36,7 @@ steps:
     echo "Download: ${download_full_path}"
     wget $download_full_path
 
-    mkdir -p opt
-    cd opt
+    mkdir -p opt && cd opt
 
     # E.g. tar xvf ~/Downloads/xpack-qemu-arm-2.8.0-7-linux-x64.tgz
     echo "Unzip: ${qemu_install_file}"
@@ -57,9 +56,15 @@ steps:
     # QEMU path is required for test
     export QEMU_BIN_PATH="opt/${qemu_bin_path}"
     python3 -m unittest discover
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
 
     # SystemTest
-    relative_qemu_bin_path="opt/${qemu_bin_path}"
+    relative_qemu_bin_path="${QEMU_BIN_PATH}"
     python3 -u gdb_test.py --test_file_path test/reference/FastenHomeAut --qemu_bin_path $relative_qemu_bin_path
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
   displayName: 'UnitTest'
 
