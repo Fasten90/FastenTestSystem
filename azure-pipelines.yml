@@ -22,7 +22,7 @@ steps:
 
     # Python
     python --version
-    pytho3 --version
+    python3 --version
 
     # QEMU
     # Install with manual
@@ -51,19 +51,15 @@ steps:
     ./$qemu_bin_path --version
     pwd  # Debug
 
-    # FastenTestSystem
     cd ..
-    echo "Clone FastenTestSystem"
-    git clone https://github.com/Fasten90/FastenTestSystem.git
-    cd FastenTestSystem
-    git checkout task_improvements
-    # Execute
-    echo "Executing..."
-    pwd  # Debug
-    relative_qemu_bin_path="../opt/${qemu_bin_path}"
-    echo "qemu_bin_path: ${relative_qemu_bin_path}"
-    export QEMU_BIN_PATH="${relative_qemu_bin_path}"
 
-    python -m unittest discover
+    # Unittest
+    # QEMU path is required for test
+    export QEMU_BIN_PATH="opt/${qemu_bin_path}"
+    python3 -m unittest discover
+
+    # SystemTest
+    relative_qemu_bin_path="opt/${qemu_bin_path}"
+    python3 -u gdb_test.py --test_file_path test/reference/FastenHomeAut --qemu_bin_path $relative_qemu_bin_path
   displayName: 'UnitTest'
 
