@@ -197,8 +197,7 @@ def execute_qemu_test(qemu_command, test_elf_path):
 
     # GDB
     print('Start GDB')
-    gdb_command = ['arm-none-eabi-gdb', '-x', 'gdb_cmd']
-    proc_gdb = subprocess.Popen(gdb_command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc_gdb = subprocess.Popen('arm-none-eabi-gdb -x gdb_cmd', shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # stdout = proc.communicate()[0]
     #print(stdout)
