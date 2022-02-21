@@ -42,8 +42,8 @@ ENV download_full_path="https://github.com/xpack-dev-tools/qemu-arm-xpack/releas
 RUN echo "Download: ${download_full_path}"
 RUN wget $download_full_path
 
-RUN mkdir -p opt
-RUN cd opt
+##RUN mkdir -p opt
+##RUN cd opt
 
 # E.g. tar xvf ~/Downloads/xpack-qemu-arm-2.8.0-7-linux-x64.tgz
 RUN echo "Unzip: ${qemu_install_file}"
@@ -59,13 +59,13 @@ RUN $qemu_bin_path --version
 
 RUN pwd  # Debug
 
-RUN cd ..
+##RUN cd ..
 
 
 
 # Unittest
 # QEMU path is required for test
-ENV QEMU_BIN_PATH="opt/${qemu_bin_path}"
+ENV QEMU_BIN_PATH="${qemu_bin_path}"
 
 
 ##python3 -m unittest discover
