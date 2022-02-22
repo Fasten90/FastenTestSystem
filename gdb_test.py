@@ -255,7 +255,7 @@ def check_test_execution_result(gdb_proc_result, debug=False):
 
     for re_found in regex_pattern.finditer(gdb_proc_result):
         if debug:
-            print(m.groupdict())
+            print(re_found.groupdict())
         re_found_dict = re_found.groupdict()
         unit_test_dict = {
             'assert_string': re_found_dict['assert_string'],
