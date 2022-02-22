@@ -1,5 +1,5 @@
 python -m venv env
-env\Scripts\python.exe -m pip install -r requirements.txt
+env\Scripts\python.exe -m pip install -r requirements_pylint.txt
 set PYTHON_FILE_LIST=gdb_test.py
 echo "Execute with only errors"
 env\Scripts\python.exe -m pylint %PYTHON_FILE_LIST% --disable=C,R,W
