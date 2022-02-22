@@ -42,9 +42,9 @@ while(1)
         set $file = $
         p isValid
         if $
-            set $successful = $successful + 1 
+            set $successful = $successful + 1
             print "Valid test assert"
-            continue   
+            continue
         else
             set $failed = $failed + 1
             print "Invalid test assert"
@@ -174,6 +174,8 @@ def check_and_prepare(test_elf_path, qemu_path):
 
 
 def execute_qemu_test(qemu_command, test_elf_path):
+    global proc_qemu
+
     # Execute QEMU
     # E.g. qemu-system-gnuarmeclipse.exe -machine STM32F4-Discovery -kernel FastenNodeF4Discovery.elf -nographic -S -s
     print('Execute: "{}"'.format(qemu_command))
@@ -197,6 +199,7 @@ def execute_qemu_test(qemu_command, test_elf_path):
 
     # GDB
     print('Start GDB')
+    global proc_gdb
     proc_gdb = subprocess.Popen('arm-none-eabi-gdb -x gdb_cmd', shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # stdout = proc.communicate()[0]
@@ -230,10 +233,10 @@ def execute_qemu_test(qemu_command, test_elf_path):
     time.sleep(2)
     # 2. Try to kill if it is exists yet
     if proc_qemu and proc_qemu.returncode is None:
-            proc_qemu.terminate()
-            time.sleep(1)
-            if proc_qemu and proc_qemu.returncode is None:
-                proc_qemu.kill()
+        proc_qemu.terminate()
+        time.sleep(1)
+        if proc_qemu and proc_qemu.returncode is None:
+            proc_qemu.kill()
     print('QEMU result code: "{}"'.format(proc_qemu.returncode))
 
     # Save to a log file
@@ -255,7 +258,7 @@ def check_test_execution_result(gdb_proc_result, debug=False):
 
     for re_found in regex_pattern.finditer(gdb_proc_result):
         if debug:
-            print(m.groupdict())
+            print(re_found.groupdict())
         re_found_dict = re_found.groupdict()
         unit_test_dict = {
             'assert_string': re_found_dict['assert_string'],
@@ -355,7 +358,8 @@ def check_results(value_result_list):
     for index, result_item in enumerate(value_result_list):
         assert 'Valid' in result_item['assert_result']
 
-        print('{:30s}: {:4s}  {:80s} {:25s} {}'.format(
+        print('{:3d}: {:30s}: {:4s}  {:80s} {:25s} {}'.format(
+            index,
             result_item['file_path'],
             result_item['line'],
             result_item['assert_string'],
@@ -401,6 +405,7 @@ def main():
     # 3. Phase: Export
     export_to_csv(args.export_csv, value_result_list)
     # TODO: Do something with summary_result_info
+    print(summary_result_info)
 
 
 if __name__ == '__main__':

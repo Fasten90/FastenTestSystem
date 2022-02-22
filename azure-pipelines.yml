@@ -4,67 +4,81 @@
 # https://aka.ms/yaml
 
 
-pool:
-  vmImage: ubuntu-latest
 
-steps:
-- script: |
+stages:
+- stage: Tests
+  jobs:
 
-    # ARM-none-eabi-gcc
-    # Note: Similar installation as ARM none eabi gcc build
-    sudo apt-get update -y
-    sudo apt-get install -y gcc-arm-none-eabi
-    sudo apt-get install -y gdb-multiarch
-    sudo ln -s /usr/bin/gdb-multiarch /usr/bin/arm-none-eabi-gdb
+  - job: unittest
+    pool:
+      vmImage: 'ubuntu-latest'
+    displayName: 'unittest'
+    steps:
+    - script: |
 
-    arm-none-eabi-gcc --version
-    arm-none-eabi-gdb --version
+        # ARM-none-eabi-gcc
+        # Note: Similar installation as ARM none eabi gcc build
+        sudo apt-get update -y
+        sudo apt-get install -y gcc-arm-none-eabi
+        sudo apt-get install -y gdb-multiarch
+        sudo ln -s /usr/bin/gdb-multiarch /usr/bin/arm-none-eabi-gdb
 
-    # Python
-    python --version
-    python3 --version
+        arm-none-eabi-gcc --version
+        arm-none-eabi-gdb --version
 
-    # QEMU
-    # Install with manual
-    # https://xpack.github.io/qemu-arm/install/
-    # downloaded file
-    qemu_version="2.8.0-9"
-    qemu_path_first_part="xpack-qemu-arm-${qemu_version}"
-    qemu_install_file="${qemu_path_first_part}-linux-x64.tar.gz"
-    # https://github.com/xpack-dev-tools/qemu-arm-xpack/releases/download/v2.8.0-9/xpack-qemu-arm-2.8.0-9-linux-x64.tar.gz
-    download_full_path="https://github.com/xpack-dev-tools/qemu-arm-xpack/releases/download/v${qemu_version}/${qemu_install_file}"
-    echo "Download: ${download_full_path}"
-    wget $download_full_path
+        # Python
+        python --version
+        python3 --version
 
-    mkdir -p opt && cd opt
+        # QEMU
+        # Install with manual
+        # https://xpack.github.io/qemu-arm/install/
+        # downloaded file
+        qemu_version="2.8.0-9"
+        qemu_path_first_part="xpack-qemu-arm-${qemu_version}"
+        qemu_install_file="${qemu_path_first_part}-linux-x64.tar.gz"
+        # https://github.com/xpack-dev-tools/qemu-arm-xpack/releases/download/v2.8.0-9/xpack-qemu-arm-2.8.0-9-linux-x64.tar.gz
+        download_full_path="https://github.com/xpack-dev-tools/qemu-arm-xpack/releases/download/v${qemu_version}/${qemu_install_file}"
+        echo "Download: ${download_full_path}"
+        wget $download_full_path
 
-    # E.g. tar xvf ~/Downloads/xpack-qemu-arm-2.8.0-7-linux-x64.tgz
-    echo "Unzip: ${qemu_install_file}"
-    tar xvf ../$qemu_install_file
-    # E.g. chmod -R -w xPacks/qemu-arm/2.8.0-7
-    #chmod -R -w $qemu_path_first_part
-    chmod -R 777 $qemu_path_first_part
-    qemu_bin_path="${qemu_path_first_part}/bin/qemu-system-gnuarmeclipse"
-    # Execute the version
-    echo "Execute: ${qemu_bin_path}"
-    ./$qemu_bin_path --version
-    pwd  # Debug
+        mkdir -p opt && cd opt
 
-    cd ..
+        # E.g. tar xvf ~/Downloads/xpack-qemu-arm-2.8.0-7-linux-x64.tgz
+        echo "Unzip: ${qemu_install_file}"
+        tar xvf ../$qemu_install_file
+        # E.g. chmod -R -w xPacks/qemu-arm/2.8.0-7
+        #chmod -R -w $qemu_path_first_part
+        chmod -R 777 $qemu_path_first_part
+        qemu_bin_path="${qemu_path_first_part}/bin/qemu-system-gnuarmeclipse"
+        # Execute the version
+        echo "Execute: ${qemu_bin_path}"
+        ./$qemu_bin_path --version
+        pwd  # Debug
 
-    # Unittest
-    # QEMU path is required for test
-    export QEMU_BIN_PATH="opt/${qemu_bin_path}"
-    python3 -m unittest discover
-    if [ $? -ne 0 ]; then
-        exit 1
-    fi
+        cd ..
 
-    # SystemTest
-    relative_qemu_bin_path="${QEMU_BIN_PATH}"
-    python3 -u gdb_test.py --test_file_path test/reference/FastenHomeAut --qemu_bin_path $relative_qemu_bin_path
-    if [ $? -ne 0 ]; then
-        exit 1
-    fi
-  displayName: 'UnitTest'
+        # Unittest
+        # QEMU path is required for test
+        export QEMU_BIN_PATH="opt/${qemu_bin_path}"
+        python3 -m unittest discover
+        if [ $? -ne 0 ]; then
+            exit 1
+        fi
+
+        # SystemTest
+        relative_qemu_bin_path="${QEMU_BIN_PATH}"
+        python3 -u gdb_test.py --test_file_path test/reference/FastenHomeAut --qemu_bin_path $relative_qemu_bin_path
+        if [ $? -ne 0 ]; then
+            exit 1
+        fi
+
+
+  - job: pylint
+    pool:
+      vmImage: 'windows-2019'
+    displayName: 'pylint'
+    steps:
+    - script: |
+        exec_pylint_with_install.bat
 
