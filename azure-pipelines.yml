@@ -11,25 +11,25 @@ stages:
 
   - job: unittest
     pool:
-      vmImage: 'ubunt-latest'
+      vmImage: 'ubuntu-latest'
     displayName: 'unittest'
     steps:
     - script: |
-    
+
         # ARM-none-eabi-gcc
         # Note: Similar installation as ARM none eabi gcc build
         sudo apt-get update -y
         sudo apt-get install -y gcc-arm-none-eabi
         sudo apt-get install -y gdb-multiarch
         sudo ln -s /usr/bin/gdb-multiarch /usr/bin/arm-none-eabi-gdb
-    
+
         arm-none-eabi-gcc --version
         arm-none-eabi-gdb --version
-    
+
         # Python
         python --version
         python3 --version
-    
+
         # QEMU
         # Install with manual
         # https://xpack.github.io/qemu-arm/install/
@@ -41,9 +41,9 @@ stages:
         download_full_path="https://github.com/xpack-dev-tools/qemu-arm-xpack/releases/download/v${qemu_version}/${qemu_install_file}"
         echo "Download: ${download_full_path}"
         wget $download_full_path
-    
+
         mkdir -p opt && cd opt
-    
+
         # E.g. tar xvf ~/Downloads/xpack-qemu-arm-2.8.0-7-linux-x64.tgz
         echo "Unzip: ${qemu_install_file}"
         tar xvf ../$qemu_install_file
@@ -55,9 +55,9 @@ stages:
         echo "Execute: ${qemu_bin_path}"
         ./$qemu_bin_path --version
         pwd  # Debug
-    
+
         cd ..
-    
+
         # Unittest
         # QEMU path is required for test
         export QEMU_BIN_PATH="opt/${qemu_bin_path}"
@@ -65,15 +65,15 @@ stages:
         if [ $? -ne 0 ]; then
             exit 1
         fi
-    
+
         # SystemTest
         relative_qemu_bin_path="${QEMU_BIN_PATH}"
         python3 -u gdb_test.py --test_file_path test/reference/FastenHomeAut --qemu_bin_path $relative_qemu_bin_path
         if [ $? -ne 0 ]; then
             exit 1
         fi
-    
-    
+
+
   - job: pylint
     pool:
       vmImage: 'windows-2019'
@@ -81,5 +81,4 @@ stages:
     steps:
     - script: |
         exec_pylint_with_install.bat
-
 
