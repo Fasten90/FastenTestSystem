@@ -253,8 +253,8 @@ def check_test_execution_result(gdb_proc_result, debug=False):
     # Example content: $1 = 34\r\n', b'$2 = 0\
     value_result_list = []
     # Note: The collector regex expression contains System Unit-test dependency (e.g. UnitTest assert arguments)
-    # https://regex101.com/r/Abm3Zm/8
-    regex_pattern = re.compile(r'Breakpoint \d, .* \(isValid\=\d .*\, [\r\n]+ *conString\=0x[a-f0-9]+ \"(?P<assert_string>.*)\"\.*\, [\r\n]* *errorString\=0x[a-f0-9]+ \"(?P<error_string>.*)\"\, [\r\n]* *line\=(?P<line>\d+)\)[\r\n]* *at .*[\r\n]+(\d+.*[\r\n]+)?\$\d+.*[\r\n]+\$\d+ \= 0x[a-f0-9]+ \"(?P<file_path>.*)\"[\r\n]+\$\d+.*[\r\n]+\$\d+ \= \"(?P<assert_result>.*)\"', re.MULTILINE)
+    # https://regex101.com/r/Abm3Zm/12
+    regex_pattern = re.compile(r'Breakpoint \d, .* \(isValid\=\d .*\, [\r\n]* *conString\=0x[a-f0-9]+ \"(?P<assert_string>.*)\"\.*\, [\r\n]* *errorString\=0x[a-f0-9]+ \"(?P<error_string>.*)\"\, [\r\n]* *line\=(?P<line>\d+)\)[\r\n]* *at .*[\r\n]+(\d+.*[\r\n]+)?\$\d+.*[\r\n]+\$\d+ \= 0x[a-f0-9]+ \"(?P<file_path>.*)\"[\r\n]+\$\d+.*[\r\n]+\$\d+ \= \"(?P<assert_result>.*)\"', re.MULTILINE)
 
     for re_found in regex_pattern.finditer(gdb_proc_result):
         if debug:
