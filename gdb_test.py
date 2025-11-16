@@ -42,9 +42,9 @@ while(1)
         set $file = $
         p isValid
         if $
-            set $successful = $successful + 1 
+            set $successful = $successful + 1
             print "Valid test assert"
-            continue   
+            continue
         else
             set $failed = $failed + 1
             print "Invalid test assert"
@@ -130,22 +130,21 @@ def check_and_prepare(test_elf_path, qemu_path):
 
     # Check the test file is exists or not
     if not os.path.exists(test_elf_path):
-        raise Exception('Test file is not exists: {}'.format(test_elf_path))
+        raise Exception('Test file is not existing: {}'.format(test_elf_path))
     else:
-        print('Test file seems exists')
+        print('Test file seems as existing')
 
     # Check
     if not os.path.exists(qemu_path):
-        log_warning('QEMU does not exists as path: {}. It is possible if it is on the PATH'.format(qemu_path))
+        log_warning('QEMU does not exist as path: {}. It is possible if it is on the PATH'.format(qemu_path))
     else:
-        print('QEMU executable file seems exists')
+        print('QEMU executable file seems as existing')
 
     try:
         #Test: qemu-system-gnuarmeclipse.exe --version
-        qemu_test_cmd = '{bin}'.format(bin=qemu_path)
-        qemu_test_args = '--version'
-        print('Test: {} {}'.format(qemu_test_cmd, qemu_test_args))
-        proc_qemu_test = subprocess.Popen([qemu_test_cmd, qemu_test_args],
+        qemu_test_cmd = '{bin} --version'.format(bin=qemu_path)
+        print('Test: {}'.format(qemu_test_cmd))
+        proc_qemu_test = subprocess.Popen(qemu_test_cmd,
                                           shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                           stderr=subprocess.PIPE)
         stdout = proc_qemu_test.communicate()[0]
@@ -160,7 +159,7 @@ def check_and_prepare(test_elf_path, qemu_path):
 
     # gdb test
     try:
-        proc_gdb_test = subprocess.Popen(['arm-none-eabi-gdb', '--version'],
+        proc_gdb_test = subprocess.Popen('arm-none-eabi-gdb --version',
                                          shell=True, stdin=subprocess.PIPE,
                                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout = proc_gdb_test.communicate()[0]
@@ -175,6 +174,8 @@ def check_and_prepare(test_elf_path, qemu_path):
 
 
 def execute_qemu_test(qemu_command, test_elf_path):
+    global proc_qemu
+
     # Execute QEMU
     # E.g. qemu-system-gnuarmeclipse.exe -machine STM32F4-Discovery -kernel FastenNodeF4Discovery.elf -nographic -S -s
     print('Execute: "{}"'.format(qemu_command))
@@ -198,6 +199,7 @@ def execute_qemu_test(qemu_command, test_elf_path):
 
     # GDB
     print('Start GDB')
+    global proc_gdb
     proc_gdb = subprocess.Popen('arm-none-eabi-gdb -x gdb_cmd', shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # stdout = proc.communicate()[0]
@@ -231,10 +233,10 @@ def execute_qemu_test(qemu_command, test_elf_path):
     time.sleep(2)
     # 2. Try to kill if it is exists yet
     if proc_qemu and proc_qemu.returncode is None:
-            proc_qemu.terminate()
-            time.sleep(1)
-            if proc_qemu and proc_qemu.returncode is None:
-                proc_qemu.kill()
+        proc_qemu.terminate()
+        time.sleep(1)
+        if proc_qemu and proc_qemu.returncode is None:
+            proc_qemu.kill()
     print('QEMU result code: "{}"'.format(proc_qemu.returncode))
 
     # Save to a log file
@@ -251,12 +253,12 @@ def check_test_execution_result(gdb_proc_result, debug=False):
     # Example content: $1 = 34\r\n', b'$2 = 0\
     value_result_list = []
     # Note: The collector regex expression contains System Unit-test dependency (e.g. UnitTest assert arguments)
-    # https://regex101.com/r/Abm3Zm/8
-    regex_pattern = re.compile(r'Breakpoint \d, .* \(isValid\=\d .*\, [\r\n]+ *conString\=0x[a-f0-9]+ \"(?P<assert_string>.*)\"\.*\, [\r\n]* *errorString\=0x[a-f0-9]+ \"(?P<error_string>.*)\"\, [\r\n]* *line\=(?P<line>\d+)\)[\r\n]* *at .*[\r\n]+(\d+.*[\r\n]+)?\$\d+.*[\r\n]+\$\d+ \= 0x[a-f0-9]+ \"(?P<file_path>.*)\"[\r\n]+\$\d+.*[\r\n]+\$\d+ \= \"(?P<assert_result>.*)\"', re.MULTILINE)
+    # https://regex101.com/r/Abm3Zm/12
+    regex_pattern = re.compile(r'Breakpoint \d, .* \(isValid\=\d .*\, [\r\n]* *conString\=0x[a-f0-9]+ \"(?P<assert_string>.*)\"\.*\, [\r\n]* *errorString\=0x[a-f0-9]+ \"(?P<error_string>.*)\"\, [\r\n]* *line\=(?P<line>\d+)\)[\r\n]* *at .*[\r\n]+(\d+.*[\r\n]+)?\$\d+.*[\r\n]+\$\d+ \= 0x[a-f0-9]+ \"(?P<file_path>.*)\"[\r\n]+\$\d+.*[\r\n]+\$\d+ \= \"(?P<assert_result>.*)\"', re.MULTILINE)
 
     for re_found in regex_pattern.finditer(gdb_proc_result):
         if debug:
-            print(m.groupdict())
+            print(re_found.groupdict())
         re_found_dict = re_found.groupdict()
         unit_test_dict = {
             'assert_string': re_found_dict['assert_string'],
@@ -323,7 +325,7 @@ def start_qemu_test(test_elf_path, qemu_path='qemu-system-gnuarmeclipse', qemu_m
 
     qemu_path = check_qemu_path(qemu_path)
 
-    qemu_command = [qemu_path, qemu_args]
+    qemu_command = '{} {}'.format(qemu_path, qemu_args)
 
     check_and_prepare(test_elf_path, qemu_path)
 
@@ -352,16 +354,26 @@ def export_to_csv(export_filename, result_list):
 
 # TODO: Update: FileName, LineNumber
 def check_results(value_result_list):
-
+    """ Check the collected results, and print summary
+        Raise issue if there is invalid test"""
+    invalid_tests = []
     for index, result_item in enumerate(value_result_list):
-        assert 'Valid' in result_item['assert_result']
-
-        print('{:30s}: {:4s}  {:80s} {:25s} {}'.format(
+        # !! HARDCODED text for the Embedded debug code !! Sync with GDB
+        result_text = '{:3d}: {:30s}: {:4s}  {:80s} {:25s} {}'.format(
+            index,
             result_item['file_path'],
             result_item['line'],
             result_item['assert_string'],
             result_item['assert_result'],
-            result_item['error_string']))
+            result_item['error_string'])
+        print(result_text)
+        if 'Invalid' in result_item['assert_result']:
+            invalid_tests.append(result_text)
+
+    if invalid_tests:
+        raise Exception('There are failed test asserts:\n' + '\n'.join(invalid_tests))
+    else:
+        print('All test asserts are valid')
 
 
 def main():
@@ -402,6 +414,7 @@ def main():
     # 3. Phase: Export
     export_to_csv(args.export_csv, value_result_list)
     # TODO: Do something with summary_result_info
+    print(summary_result_info)
 
 
 if __name__ == '__main__':
