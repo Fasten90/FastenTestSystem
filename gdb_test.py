@@ -354,17 +354,26 @@ def export_to_csv(export_filename, result_list):
 
 # TODO: Update: FileName, LineNumber
 def check_results(value_result_list):
-
+    """ Check the collected results, and print summary
+        Raise issue if there is invalid test"""
+    invalid_tests = []
     for index, result_item in enumerate(value_result_list):
-        assert 'Valid' in result_item['assert_result']
-
-        print('{:3d}: {:30s}: {:4s}  {:80s} {:25s} {}'.format(
+        # !! HARDCODED text for the Embedded debug code !! Sync with GDB
+        result_text = '{:3d}: {:30s}: {:4s}  {:80s} {:25s} {}'.format(
             index,
             result_item['file_path'],
             result_item['line'],
             result_item['assert_string'],
             result_item['assert_result'],
-            result_item['error_string']))
+            result_item['error_string'])
+        print(result_text)
+        if 'Invalid' in result_item['assert_result']:
+            invalid_tests.append(result_text)
+
+    if invalid_tests:
+        raise Exception('There are failed test asserts:\n' + '\n'.join(invalid_tests))
+    else:
+        print('All test asserts are valid')
 
 
 def main():
