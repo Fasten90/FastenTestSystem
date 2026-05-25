@@ -18,6 +18,8 @@ gdb_cmd_template = \
 """file <test_file_path>
 target remote localhost:1234
 #load <test_file_path>
+# Suppress the promts
+set breakpoint pending on
 # ASSERT breakpoint
 break UnitTest_CheckResult
 # UnitTest finished breakpoint
